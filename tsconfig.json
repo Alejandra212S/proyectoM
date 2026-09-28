@@ -8,5 +8,5 @@
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src", "src/app/App.tsx"]
+  "include": ["src"]
 }

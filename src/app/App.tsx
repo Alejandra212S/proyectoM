@@ -11,7 +11,10 @@ import {
   Radio, Zap, Gauge, Eye,
 } from "lucide-react";
 
-/* ─────────────── Types ─────────────── */
+
+
+
+/* ─────────────── Tipos ─────────────── */
 type MachineStatus = "running" | "stopped" | "alarm" | "maintenance";
 type View = "dashboard" | "machines" | "machine-detail" | "reports" | "alerts";
 
@@ -35,7 +38,7 @@ interface Alert {
   message: string; time: string; acknowledged: boolean;
 }
 
-/* ─────────────── Mock Data ─────────────── */
+/* ─────────────── DATOS ─────────────── */
 const makeDI = (overrides: Partial<DI>[] = []): DI[] =>
   [
     "Puerta cerrada", "Molde cerrado", "Sensor presión", "Fin de ciclo",
@@ -51,10 +54,10 @@ const makeDO = (overrides: Partial<DO_>[] = []): DO_[] =>
 
 const MACHINES: Machine[] = [
   {
-    id: "INY-01", name: "Inyección #01", type: "inyeccion",
-    adam6050: "192.168.1.110", status: "running",
-    oee: 84.2, availability: 92.5, performance: 95.1, quality: 95.8,
-    uptime: 412, downtime: 28, partsProduced: 3840, partsTarget: 4200, defects: 18,
+    id: "", name: "", type: "inyeccion",
+    adam6050: "", status: "running",
+    oee: 0.00, availability: 0.00, performance: 0.00, quality: 0.00,
+    uptime: 0.00, downtime: 0.00, partsProduced: 0.00, partsTarget: 0.00, defects: 0.00,
     lastEvent: "Inicio de ciclo", lastEventTime: "14:32:11",
     di: makeDI([{state:true},{state:true},{state:true},{state:false},{state:false},{state:true},{state:true},{state:false},{state:true},{state:true},{state:true},{state:false}]),
     do_: makeDO([{state:true},{state:true},{state:true},{state:true},{state:false},{state:false}]),
@@ -65,10 +68,10 @@ const MACHINES: Machine[] = [
     ],
   },
   {
-    id: "INY-02", name: "Inyección #02", type: "inyeccion",
-    adam6050: "192.168.1.111", status: "alarm",
-    oee: 61.3, availability: 78.0, performance: 88.2, quality: 89.0,
-    uptime: 320, downtime: 120, partsProduced: 2700, partsTarget: 4000, defects: 54,
+    id: "", name: "", type: "inyeccion",
+    adam6050: "", status: "alarm",
+   oee: 0.00, availability: 0.00, performance: 0.00, quality: 0.00,
+    uptime: 0.00, downtime: 0.00, partsProduced: 0.00, partsTarget: 0.00, defects: 0.00,
     lastEvent: "ALARMA: Temp. zona 2 alta", lastEventTime: "14:29:05",
     di: makeDI([{state:true},{state:false},{state:false},{state:false},{state:true},{state:false},{state:true},{state:false},{state:false},{state:false},{state:true},{state:true}]),
     do_: makeDO([{state:false},{state:true},{state:false},{state:false},{state:false},{state:true}]),
@@ -79,10 +82,10 @@ const MACHINES: Machine[] = [
     ],
   },
   {
-    id: "ENS-01", name: "Ensamble #01", type: "ensamble",
-    adam6050: "192.168.1.112", status: "running",
-    oee: 91.7, availability: 97.3, performance: 96.2, quality: 97.9,
-    uptime: 435, downtime: 5, partsProduced: 5120, partsTarget: 5400, defects: 12,
+    id: "", name: "", type: "ensamble",
+    adam6050: "", status: "running",
+   oee: 0.00, availability: 0.00, performance: 0.00, quality: 0.00,
+    uptime: 0.00, downtime: 0.00, partsProduced: 0.00, partsTarget: 0.00, defects: 0.00,
     lastEvent: "Ciclo completado", lastEventTime: "14:33:02",
     di: makeDI(), do_: makeDO(),
     downtimeLog: [
@@ -90,8 +93,8 @@ const MACHINES: Machine[] = [
     ],
   },
   {
-    id: "ENS-02", name: "Ensamble #02", type: "ensamble",
-    adam6050: "192.168.1.113", status: "maintenance",
+    id: "", name: "", type: "ensamble",
+    adam6050: "", status: "maintenance",
     oee: 0, availability: 0, performance: 0, quality: 0,
     uptime: 0, downtime: 440, partsProduced: 0, partsTarget: 4800, defects: 0,
     lastEvent: "Mantenimiento programado", lastEventTime: "06:00:00",
@@ -102,10 +105,10 @@ const MACHINES: Machine[] = [
     ],
   },
   {
-    id: "ENL-01", name: "Enlainadora #01", type: "enlainadora",
-    adam6050: "192.168.1.114", status: "running",
-    oee: 79.5, availability: 88.4, performance: 91.2, quality: 98.6,
-    uptime: 395, downtime: 45, partsProduced: 8740, partsTarget: 9600, defects: 31,
+    id: "", name: "", type: "enlainadora",
+    adam6050: "", status: "running",
+   oee: 0.00, availability: 0.00, performance: 0.00, quality: 0.00,
+    uptime: 0.00, downtime: 0.00, partsProduced: 0.00, partsTarget: 0.00, defects: 0.00,
     lastEvent: "Rollo en proceso", lastEventTime: "14:31:44",
     di: makeDI(), do_: makeDO(),
     downtimeLog: [
@@ -115,10 +118,10 @@ const MACHINES: Machine[] = [
     ],
   },
   {
-    id: "ENL-02", name: "Enlainadora #02", type: "enlainadora",
-    adam6050: "192.168.1.115", status: "stopped",
-    oee: 0, availability: 42.0, performance: 0, quality: 0,
-    uptime: 188, downtime: 252, partsProduced: 3100, partsTarget: 9200, defects: 8,
+    id: "", name: "", type: "enlainadora",
+    adam6050: "", status: "stopped",
+    oee: 0.00, availability: 0.00, performance: 0.00, quality: 0.00,
+    uptime: 0.00, downtime: 0.00, partsProduced: 0.00, partsTarget: 0.00, defects: 0.00,
     lastEvent: "Paro por operador", lastEventTime: "11:18:33",
     di: makeDI(Array(12).fill({state: false})),
     do_: makeDO(Array(6).fill({state: false})),
@@ -164,18 +167,21 @@ const downtimeByReason = [
   { name: "Paro operador", value: 12, color: "#6B7A8D" },
 ];
 
-/* ─────────────── Helpers ─────────────── */
+/* ───────────────  Definición de colores por Alarma  ─────────────── */
 const STATUS_COLOR: Record<MachineStatus, string> = {
   running: "#22C55E",
   stopped: "#F59E0B",
   alarm: "#EF4444",
   maintenance: "#3B82F6",
 };
+
+{/*Estados de las maquinas*/}
+
 const STATUS_LABEL: Record<MachineStatus, string> = {
-  running: "En operación",
-  stopped: "Detenida",
+  running: "EN OPERACIÓN",
+  stopped: "DETENIDA",
   alarm: "ALARMA",
-  maintenance: "Mantenimiento",
+  maintenance: "MANTENIMIENTO",
 };
 const TYPE_LABEL: Record<Machine["type"], string> = {
   inyeccion: "Inyección",
@@ -200,7 +206,7 @@ function fmtDate(d: Date) {
   return d.toLocaleDateString("es-MX", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
 }
 
-/* ─────────────── Sub-components ─────────────── */
+/* ─────────────── Sub-componentes de la parte general en oeee ─────────────── */
 
 function OEERing({ value, size = 72, stroke = 6 }: { value: number; size?: number; stroke?: number }) {
   const r = (size - stroke * 2) / 2;
@@ -315,7 +321,7 @@ function MachineCard({ machine, onClick }: { machine: Machine; onClick: () => vo
   );
 }
 
-/* ─────────────── Views ─────────────── */
+/* ─────────────── Vistas en sidebar  ─────────────── */
 
 function DashboardView({ machines, alerts, onSelectMachine }: {
   machines: Machine[]; alerts: Alert[]; onSelectMachine: (m: Machine) => void;
@@ -354,14 +360,17 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
           <div className="font-mono text-2xl font-bold text-foreground tracking-widest">{fmtTime(now)}</div>
           <div className="flex items-center gap-1.5 justify-end mt-1">
             <span className="inline-flex h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-[11px] text-muted-foreground font-mono">ADAM-6050 × 6 conectados</span>
+            <span className="text-[11px] text-muted-foreground font-mono"> 6 maquinas conectadas</span>
           </div>
         </div>
       </div>
 
-      {/* KPI row */}
+      {/* Rendimiento total */}
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
         <KpiCard label="OEE Promedio" value={avgOee.toFixed(1)} unit="%" sub="Maquinaria activa" trend="down" />
+
         <KpiCard label="Piezas Producidas" value={totalProduced.toLocaleString()} unit="pzs"
           sub={`Objetivo: ${totalTarget.toLocaleString()}`} trend="up" />
         <KpiCard label="Tiempo Muerto" value={totalDowntime} unit="min" sub="Acumulado hoy" trend="down" />
@@ -369,7 +378,7 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
           sub={`${running} máq. en operación`} trend={unacked > 0 ? "up" : null} />
       </div>
 
-      {/* Machine grid */}
+      {/* Parte de estado de la maquinaria */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">Estado de Maquinaria</h2>
@@ -389,9 +398,9 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
         </div>
       </div>
 
-      {/* Charts row */}
+      {/* Gráficas de producción y tiempo muerto */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Production trend */}
+        {/* Producción por Hora */}
         <div className="lg:col-span-2 bg-card border border-border rounded p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-foreground">Producción por Hora — Hoy</h3>
@@ -415,7 +424,7 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
           </ResponsiveContainer>
         </div>
 
-        {/* Downtime by reason */}
+        {/* Tiempo muerto por causa  */}
         <div className="bg-card border border-border rounded p-5">
           <h3 className="text-sm font-semibold text-foreground mb-4">Tiempo Muerto por Causa</h3>
           <div className="flex justify-center">
@@ -440,7 +449,7 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
         </div>
       </div>
 
-      {/* Recent alerts */}
+      {/* Alentar Recientes */}
       <div className="bg-card border border-border rounded">
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h3 className="text-sm font-semibold text-foreground">Eventos Recientes</h3>
@@ -481,7 +490,7 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
 
   const oeeColor = machine.oee >= 85 ? "#22C55E" : machine.oee >= 65 ? "#F59E0B" : machine.oee > 0 ? "#EF4444" : "#6B7A8D";
   const hourlyData = [
-    { hora: "06", pzs: 420 }, { hora: "07", pzs: 460 }, { hora: "08", pzs: 380 },
+    { hora: "", pzs: ""}, { hora: "0", pzs: 460 }, { hora: "08", pzs: 380 },
     { hora: "09", pzs: 490 }, { hora: "10", pzs: 445 }, { hora: "11", pzs: 370 },
     { hora: "12", pzs: 430 }, { hora: "13", pzs: 510 }, { hora: "14", pzs: 335 },
   ];
@@ -522,8 +531,9 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
           </div>
         </div>
       </div>
+       
 
-      {/* KPI row */}
+      {/* Indicador de rendimiento */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         {[
           { l: "Disponibilidad", v: machine.availability, u: "%" },
@@ -539,7 +549,7 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
         ))}
       </div>
 
-      {/* Hourly bar chart */}
+      {/* Estadisticas de piezas por hora */}
       <div className="bg-card border border-border rounded p-5">
         <h3 className="text-sm font-semibold text-foreground mb-4">Piezas por Hora — Hoy</h3>
         <ResponsiveContainer width="100%" height={140}>
@@ -589,7 +599,7 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
               </div>
             </div>
             <div>
-              <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">
+           /*<h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">
                 Salidas Digitales — DO0–DO5
               </h4>
               <div className="space-y-1.5">
@@ -679,34 +689,40 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
     </div>
   );
 }
-
+{/*Parte de arriba de dashboard en donde se muestrasel tipo de maquinas*/}
 function MachinesView({ machines, onSelectMachine }: { machines: Machine[]; onSelectMachine: (m: Machine) => void }) {
   const [filter, setFilter] = useState<Machine["type"] | "all">("all");
   const filtered = filter === "all" ? machines : machines.filter(m => m.type === filter);
-
   return (
     <div className="p-6 space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">Maquinaria</h1>
+         <h2 className="text-xl font-bold text-foreground"></h2>
         <div className="flex gap-2">
-          {([["all", "Todas"], ["inyeccion", "Inyección"], ["ensamble", "Ensamble"], ["enlainadora", "Enlainadora"]] as const).map(([v, l]) => (
+          {([["all", "Todas"], ["inyeccion", "Inyección"], ["ensamble", "Ensamble"], ["enlainadora", "Enlainadora"] ] as const).map(([v, l]) => (
             <button key={v} onClick={() => setFilter(v)}
               className={`px-3 py-1.5 text-xs rounded transition-colors ${filter === v
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted text-muted-foreground hover:text-foreground"}`}>
               {l}
             </button>
+            
           ))}
+         {/*Boton para agregar maquina*/} 
+         
+        <button className="px-3 py-1.5 text-xs rounded bg-red-600 text-white hover:bg-red-700"> Agregar Máquina </button>
         </div>
       </div>
+         
+          
+      
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {filtered.map(m => (
           <MachineCard key={m.id} machine={m} onClick={() => onSelectMachine(m)} />
         ))}
       </div>
-
-      {/* Summary table */}
+      {/* Resumen de maquinaria  */}
       <div className="bg-card border border-border rounded overflow-hidden">
         <div className="px-5 py-3 border-b border-border">
           <h3 className="text-sm font-semibold text-foreground">Resumen de Maquinaria</h3>
@@ -765,12 +781,13 @@ function ReportsView({ machines }: { machines: Machine[] }) {
   const [period, setPeriod] = useState<"hoy" | "semana" | "mes">("semana");
 
   const weeklyOEE = [
-    { machine: "Inyección #01", lun: 88, mar: 85, mié: 82, jue: 87, vie: 84, prom: 85.2 },
-    { machine: "Inyección #02", lun: 72, mar: 68, mié: 64, jue: 70, vie: 61, prom: 67.0 },
-    { machine: "Ensamble #01", lun: 93, mar: 91, mié: 94, jue: 92, vie: 92, prom: 92.4 },
-    { machine: "Ensamble #02", lun: 89, mar: 91, mié: 0, jue: 90, vie: 0, prom: 54.0 },
-    { machine: "Enlainadora #01", lun: 81, mar: 79, mié: 83, jue: 77, vie: 80, prom: 80.0 },
-    { machine: "Enlainadora #02", lun: 74, mar: 71, mié: 68, jue: 72, vie: 42, prom: 65.4 },
+    { machine: "", lun: 0.00, mar: 0.00, mié: 0.00, jue: 0.00, vie: 0.00, prom: 0.00 },
+    { machine: "", lun: 0.00, mar: 0.00, mié: 0.00, jue: 0.00, vie: 0.00, prom: 0.00 },
+    { machine: "", lun: 0.00, mar: 0.00, mié: 0.00, jue: 0.00, vie: 0.00, prom: 0.00 },
+    { machine: "", lun: 0.00, mar: 0.00, mié: 0.00, jue: 0.00, vie: 0.00, prom: 0.00 },
+     { machine: "", lun: 0.00, mar: 0.00, mié: 0.00, jue: 0.00, vie: 0.00, prom: 0.00 },
+    { machine: "", lun: 0.00, mar: 0.00, mié: 0.00, jue: 0.00, vie: 0.00, prom: 0.00 },
+   
   ];
 
   const efficiencyData = weeklyOEE.map(r => ({
@@ -801,13 +818,13 @@ function ReportsView({ machines }: { machines: Machine[] }) {
         </div>
       </div>
 
-      {/* Summary KPIs */}
+      {/* Suma de oeee promedio */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { l: "OEE Promedio Planta", v: "74.2", u: "%", note: "Objetivo: 85%" },
-          { l: "Total Piezas", v: "22,800", u: "", note: "Objetivo: 28,200" },
+          { l: "OEE Promedio Planta", v: "74.2", u: "%", note: "Objetivo: %" },
+          { l: "Total Piezas", v: "22,800", u: "", note: "Objetivo: " },
           { l: "Tiempo Muerto Total", v: "853", u: "min", note: "Esta semana" },
-          { l: "Tasa de Defectos", v: "0.88", u: "%", note: "123 piezas rechazadas" },
+          { l: "Tasa de Defectos", v: "0.88", u: "%", note: "" },
         ].map(({ l, v, u, note }) => (
           <div key={l} className="bg-card border border-border rounded p-4">
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">{l}</div>
@@ -817,7 +834,7 @@ function ReportsView({ machines }: { machines: Machine[] }) {
         ))}
       </div>
 
-      {/* OEE por máquina - bar chart */}
+      {/* OEE por máquina -  */}
       <div className="bg-card border border-border rounded p-5">
         <h3 className="text-sm font-semibold text-foreground mb-4">OEE por Máquina — Semana actual</h3>
         <ResponsiveContainer width="100%" height={200}>
@@ -839,7 +856,7 @@ function ReportsView({ machines }: { machines: Machine[] }) {
         </ResponsiveContainer>
       </div>
 
-      {/* Detailed OEE table */}
+      {/* Tabla de detalles OOE general  */}
       <div className="bg-card border border-border rounded overflow-hidden">
         <div className="px-5 py-3 border-b border-border flex items-center justify-between">
           <h3 className="text-sm font-semibold text-foreground">OEE Diario por Máquina</h3>
@@ -882,7 +899,7 @@ function ReportsView({ machines }: { machines: Machine[] }) {
         </div>
       </div>
 
-      {/* Downtime report */}
+      {/* Parte del reporte */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-card border border-border rounded p-5">
           <h3 className="text-sm font-semibold text-foreground mb-4">Tiempo Muerto por Máquina</h3>
@@ -1003,7 +1020,7 @@ function AlertsView({ alerts, onAcknowledge }: { alerts: Alert[]; onAcknowledge:
   );
 }
 
-/* ─────────────── Sidebar ─────────────── */
+/* ─────────────── Sidebar del lado derecho ─────────────── */
 function Sidebar({ view, setView, alertCount }: {
   view: View; setView: (v: View) => void; alertCount: number;
 }) {
@@ -1023,8 +1040,8 @@ function Sidebar({ view, setView, alertCount }: {
             <Activity size={14} className="text-white" />
           </div>
           <div>
-            <div className="text-sm font-bold text-foreground leading-tight">MES Control</div>
-            <div className="font-mono text-[10px] text-muted-foreground">ADAM-6050 Sistema</div>
+            <div className="text-sm font-bold text-foreground leading-tight">Control</div>
+            <div className="font-mono text-[10px] text-muted-foreground">Monitoreo de ADAM</div>
           </div>
         </div>
       </div>
@@ -1064,6 +1081,428 @@ function Sidebar({ view, setView, alertCount }: {
         </div>
       </div>
     </aside>
+  );
+}
+
+
+ interface Maquina {
+  nombre: string;
+  numero: string;
+  tipo: string;
+  otroTipo: string;
+  marca: string;
+  modelo: string;
+  area: string;
+  ubicacion: string;
+  estado: string;
+  comunicacion: string;
+  ip: string;
+  puerto: string;
+  sensores: string;
+  descripcion: string;
+}
+function AgregarMaquina() {
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+
+  const [maquina, setMaquina] = useState<Maquina>({
+    nombre: "",
+    numero: "",
+    tipo: "",
+    otroTipo: "",
+    marca: "",
+    modelo: "",
+    area: "",
+    ubicacion: "",
+    estado: "Operativa",
+    comunicacion: "",
+    ip: "",
+    puerto: "",
+    sensores: "",
+    descripcion: "",
+  });
+  const handleChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+) => {
+  const { name, value } = e.target;
+
+  setMaquina((prev) => ({
+    ...prev,
+    value,
+  }));
+};
+
+  const guardarMaquina = (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+
+    console.log("Máquina registrada:", maquina);
+
+    setMostrarFormulario(false);
+  };
+
+  return (
+  
+
+    <>
+      {/* BOTÓN AGREGAR MÁQUINA */}
+      <button
+        onClick={() => setMostrarFormulario(true)}
+        className="px-3 py-1.5 text-xs rounded bg-green-600 text-white hover:bg-green-700"
+      >
+        Agregar Máquina
+      </button>
+
+      {/* MODAL */}
+      {mostrarFormulario && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-xl shadow-xl">
+
+            {/* ENCABEZADO */}
+            <div className="flex items-center justify-between px-6 py-4 border-b">
+
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">
+                  Agregar Máquina
+                </h2>
+
+                <p className="text-sm text-gray-500">
+                  Registra la información de la maquinaria
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setMostrarFormulario(false)}
+                className="text-gray-400 hover:text-red-500 text-xl"
+              >
+                ✕
+              </button>
+
+            </div>
+
+            {/* FORMULARIO */}
+            <form onSubmit={guardarMaquina} className="p-6 space-y-6">
+
+              {/* INFORMACIÓN GENERAL */}
+              <section>
+
+                <h3 className="mb-4 text-sm font-semibold text-gray-700">
+                  Información general
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  {/* NOMBRE */}
+                  <div>
+                    <label className="text-sm text-gray-600">
+                      Nombre de la máquina
+                    </label>
+
+                    <input
+                      type="text"
+                      name="nombre"
+                      value={maquina.nombre}
+                      onChange={handleChange}
+                      placeholder="Ej. Máquina de Inyección 01"
+                      required
+                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                    />
+                  </div>
+
+                  {/* ID */}
+                  <div>
+                    <label className="text-sm text-gray-600">
+                      Número / ID
+                    </label>
+
+                    <input
+                      type="text"
+                      name="numero"
+                      value={maquina.numero}
+                      onChange={handleChange}
+                      placeholder="Ej. MAQ-001"
+                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                    />
+                  </div>
+
+                  {/* TIPO */}
+                  <div>
+                    <label className="text-sm text-gray-600">
+                      Tipo de máquina
+                    </label>
+
+                    <select
+                      name="tipo"
+                      value={maquina.tipo}
+                      onChange={handleChange}
+                      required
+                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                    >
+                      <option value="">Seleccionar...</option>
+                      <option value="Inyección">Inyección</option>
+                      <option value="Ensamble">Ensamble</option>
+                      <option value="Enlainadora">Enlainadora</option>
+                      <option value="CNC">CNC</option>
+                      <option value="Prensa">Prensa</option>
+                      <option value="Empacadora">Empacadora</option>
+                      <option value="Transportadora">Transportadora</option>
+                      <option value="Otros">Otros</option>
+                    </select>
+                  </div>
+
+                  {/* OTROS */}
+                  {maquina.tipo === "Otros" && (
+                    <div>
+                      <label className="text-sm text-gray-600">
+                        Especificar tipo
+                      </label>
+
+                      <input
+                        type="text"
+                        name="otroTipo"
+                        value={maquina.otroTipo}
+                        onChange={handleChange}
+                        placeholder="¿Qué tipo de máquina es?"
+                        required
+                        className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                      />
+                    </div>
+                  )}
+
+                  {/* MARCA */}
+                  <div>
+                    <label className="text-sm text-gray-600">
+                      Marca
+                    </label>
+
+                    <input
+                      type="text"
+                      name="marca"
+                      value={maquina.marca}
+                      onChange={handleChange}
+                      placeholder="Ej. Engel"
+                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                    />
+                  </div>
+
+                  {/* MODELO */}
+                  <div>
+                    <label className="text-sm text-gray-600">
+                      Modelo
+                    </label>
+
+                    <input
+                      type="text"
+                      name="modelo"
+                      value={maquina.modelo}
+                      onChange={handleChange}
+                      placeholder="Modelo"
+                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                    />
+                  </div>
+
+                </div>
+              </section>
+
+              {/* UBICACIÓN */}
+              <section>
+
+                <h3 className="mb-4 text-sm font-semibold text-gray-700">
+                  Ubicación y estado
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                  <div>
+                    <label className="text-sm text-gray-600">
+                      Área
+                    </label>
+
+                    <select
+                      name="area"
+                      value={maquina.area}
+                      onChange={handleChange}
+                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                    >
+                      <option value="">Seleccionar...</option>
+                      <option value="Producción">Producción</option>
+                      <option value="Ensamble">Ensamble</option>
+                      <option value="Inyección">Inyección</option>
+                      <option value="Mantenimiento">Mantenimiento</option>
+                      <option value="Calidad">Calidad</option>
+                      <option value="Almacén">Almacén</option>
+                      <option value="Otros">Otros</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-gray-600">
+                      Ubicación
+                    </label>
+
+                    <input
+                      type="text"
+                      name="ubicacion"
+                      value={maquina.ubicacion}
+                      onChange={handleChange}
+                      placeholder="Ej. Línea 2"
+                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-gray-600">
+                      Estado
+                    </label>
+
+                    <select
+                      name="estado"
+                      value={maquina.estado}
+                      onChange={handleChange}
+                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                    >
+                      <option value="Operativa">Operativa</option>
+                      <option value="Detenida">Detenida</option>
+                      <option value="Mantenimiento">
+                        En mantenimiento
+                      </option>
+                      <option value="Fuera de servicio">
+                        Fuera de servicio
+                      </option>
+                    </select>
+                  </div>
+
+                </div>
+              </section>
+
+              {/* CONECTIVIDAD */}
+              <section>
+
+                <h3 className="mb-4 text-sm font-semibold text-gray-700">
+                  Conectividad
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                  <div>
+                    <label className="text-sm text-gray-600">
+                      Comunicación
+                    </label>
+
+                    <select
+                      name="comunicacion"
+                      value={maquina.comunicacion}
+                      onChange={handleChange}
+                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                    >
+                      <option value="">Seleccionar...</option>
+                      <option value="TCP/IP">TCP/IP</option>
+                      <option value="Modbus TCP">Modbus TCP</option>
+                      <option value="MQTT">MQTT</option>
+                      <option value="OPC UA">OPC UA</option>
+                      <option value="EtherNet/IP">
+                        EtherNet/IP
+                      </option>
+                      <option value="Otro">Otro</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-gray-600">
+                      Dirección IP
+                    </label>
+
+                    <input
+                      type="text"
+                      name="ip"
+                      value={maquina.ip}
+                      onChange={handleChange}
+                      placeholder="192.168.1.100"
+                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-gray-600">
+                      Puerto
+                    </label>
+
+                    <input
+                      type="text"
+                      name="puerto"
+                      value={maquina.puerto}
+                      onChange={handleChange}
+                      placeholder="502"
+                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                    />
+                  </div>
+
+                </div>
+              </section>
+
+              {/* SENSORES */}
+              <section>
+
+                <label className="text-sm text-gray-600">
+                  Sensores / señales disponibles
+                </label>
+
+                <textarea
+                  name="sensores"
+                  value={maquina.sensores}
+                  onChange={handleChange}
+                  rows={3}
+                  placeholder="Ej. Sensor de pieza, sensor de ciclo, alarma, paro..."
+                  className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                />
+
+              </section>
+
+              {/* DESCRIPCIÓN */}
+              <section>
+
+                <label className="text-sm text-gray-600">
+                  Descripción
+                </label>
+
+                <textarea
+                  name="descripcion"
+                  value={maquina.descripcion}
+                  onChange={handleChange}
+                  rows={3}
+                  placeholder="Descripción de la máquina..."
+                  className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                />
+
+              </section>
+
+              {/* BOTONES */}
+              <div className="flex justify-end gap-3 pt-4 border-t">
+
+                <button
+                  type="button"
+                  onClick={() => setMostrarFormulario(false)}
+                  className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm rounded-lg bg-green-600 text-white hover:bg-green-700"
+                >
+                  Guardar Máquina
+                </button>
+
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
