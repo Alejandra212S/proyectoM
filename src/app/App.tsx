@@ -11,9 +11,6 @@ import {
   Radio, Zap, Gauge, Eye,
 } from "lucide-react";
 
-
-
-
 /* ─────────────── Tipos ─────────────── */
 type MachineStatus = "running" | "stopped" | "alarm" | "maintenance";
 type View = "dashboard" | "machines" | "machine-detail" | "reports" | "alerts";
@@ -167,7 +164,7 @@ const downtimeByReason = [
   { name: "Paro operador", value: 12, color: "#6B7A8D" },
 ];
 
-/* ───────────────  Definición de colores por Alarma  ─────────────── */
+/* ───────────────  Definición de colores de operación de maquina  ─────────────── */
 const STATUS_COLOR: Record<MachineStatus, string> = {
   running: "#22C55E",
   stopped: "#F59E0B",
@@ -513,7 +510,7 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
             <StatusDot status={machine.status} />
             <span className="font-mono text-xs text-muted-foreground">{machine.id}</span>
             <span className="font-mono text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded">
-              ADAM-6050 @ {machine.adam6050}
+            / {machine.adam6050}
             </span>
           </div>
           <h1 className="text-xl font-bold text-foreground">{machine.name}</h1>
@@ -569,7 +566,7 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
       {/* Tabs */}
       <div className="bg-card border border-border rounded">
         <div className="flex border-b border-border">
-          {([["io", "I/O Digital (ADAM-6050)"], ["downtime", "Registro de Paros"], ["history", "OEE Semanal"]] as const).map(([k, l]) => (
+          {([["io", "I/O Digital"], ["downtime", "Registro de Paros"], ["history", "OEE Semanal"]] as const).map(([k, l]) => (
             <button key={k} onClick={() => setTab(k)}
               className={`px-5 py-3 text-xs font-medium transition-colors ${tab === k
                 ? "text-primary border-b-2 border-primary -mb-px"
@@ -599,7 +596,7 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
               </div>
             </div>
             <div>
-           /*<h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">
+           <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">
                 Salidas Digitales — DO0–DO5
               </h4>
               <div className="space-y-1.5">
@@ -690,27 +687,30 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
   );
 }
 {/*Parte de arriba de dashboard en donde se muestrasel tipo de maquinas*/}
-function MachinesView({ machines, onSelectMachine }: { machines: Machine[]; onSelectMachine: (m: Machine) => void }) {
+function MachinesView({ machines, onSelectMachine, onAddMachine }: {
+  machines: Machine[];
+  onSelectMachine: (m: Machine) => void;
+  onAddMachine: (m: Machine) => void;
+}) {
   const [filter, setFilter] = useState<Machine["type"] | "all">("all");
   const filtered = filter === "all" ? machines : machines.filter(m => m.type === filter);
   return (
     <div className="p-6 space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">Maquinaria</h1>
-         <h2 className="text-xl font-bold text-foreground"></h2>
+         <h2 className="text-xl font-bold text-foreground "></h2>
         <div className="flex gap-2">
-          {([["all", "Todas"], ["inyeccion", "Inyección"], ["ensamble", "Ensamble"], ["enlainadora", "Enlainadora"] ] as const).map(([v, l]) => (
+          {([["all", "Todas"], ["inyeccion", "Inyección"], ["ensamble", "Ensamble"], ["enlainadora", "Enlainadora" ] ] as const).map(([v, l]) => (
             <button key={v} onClick={() => setFilter(v)}
               className={`px-3 py-1.5 text-xs rounded transition-colors ${filter === v
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted text-muted-foreground hover:text-foreground"}`}>
               {l}
             </button>
-            
           ))}
          {/*Boton para agregar maquina*/} 
          
-        <button className="px-3 py-1.5 text-xs rounded bg-red-600 text-white hover:bg-red-700"> Agregar Máquina </button>
+        <AgregarMaquina onAddMachine={onAddMachine} />
         </div>
       </div>
          
@@ -732,7 +732,7 @@ function MachinesView({ machines, onSelectMachine }: { machines: Machine[]; onSe
             <thead>
               <tr className="border-b border-border bg-muted/30">
                 {["Máquina", "ADAM-6050 IP", "Estado", "OEE", "Disponib.", "Rend.", "Calidad", "Piezas", "T. Muerto"].map(h => (
-                  <th key={h} className="px-4 py-2.5 text-left text-[11px] uppercase tracking-wider text-muted-foreground font-medium whitespace-nowrap">{h}</th>
+                  <th key={h} className="px-4 py-2.5 text-left text-[11px] uppercase tracking-wider text-muted-foreground font-medium whitespace-nowra0p">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -814,6 +814,11 @@ function ReportsView({ machines }: { machines: Machine[] }) {
           <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors bg-muted px-3 py-2 rounded">
             <Download size={12} />
             Exportar CSV
+          </button>
+
+          <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors bg-muted px-3 py-2 rounded">
+            <Download size={12} />
+            Exportar pdf
           </button>
         </div>
       </div>
@@ -1025,6 +1030,8 @@ function Sidebar({ view, setView, alertCount }: {
   view: View; setView: (v: View) => void; alertCount: number;
 }) {
   const navItems: { id: View; label: string; Icon: any }[] = [
+
+    { id:"dashboard", label: "Logo", Icon: Home },
     { id: "dashboard", label: "Panel", Icon: Home },
     { id: "machines", label: "Maquinaria", Icon: Cpu },
     { id: "reports", label: "Reportes", Icon: BarChart2 },
@@ -1034,17 +1041,7 @@ function Sidebar({ view, setView, alertCount }: {
   return (
     <aside className="w-56 flex-shrink-0 bg-sidebar border-r border-sidebar-border flex flex-col">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-sidebar-border">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded bg-primary flex items-center justify-center">
-            <Activity size={14} className="text-white" />
-          </div>
-          <div>
-            <div className="text-sm font-bold text-foreground leading-tight">Control</div>
-            <div className="font-mono text-[10px] text-muted-foreground">Monitoreo de ADAM</div>
-          </div>
-        </div>
-      </div>
+
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5">
@@ -1101,7 +1098,7 @@ function Sidebar({ view, setView, alertCount }: {
   sensores: string;
   descripcion: string;
 }
-function AgregarMaquina() {
+function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => void }) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
   const [maquina, setMaquina] = useState<Maquina>({
@@ -1127,7 +1124,7 @@ function AgregarMaquina() {
 
   setMaquina((prev) => ({
     ...prev,
-    value,
+    [name]: value,
   }));
 };
 
@@ -1136,8 +1133,61 @@ function AgregarMaquina() {
   ) => {
     e.preventDefault();
 
-    console.log("Máquina registrada:", maquina);
+    const tipoNormalizado: Machine["type"] =
+      maquina.tipo === "Inyección"
+        ? "inyeccion"
+        : maquina.tipo === "Ensamble"
+          ? "ensamble"
+          : maquina.tipo === "Enlainadora"
+            ? "enlainadora"
+            : "otro";
 
+    const nuevaMaquina: Machine = {
+      id: maquina.numero.trim() || `MAQ-${Date.now().toString().slice(-4)}`,
+      name: maquina.nombre.trim(),
+      type: tipoNormalizado,
+      adam6050: maquina.ip.trim() || "Sin IP",
+      status:
+        maquina.estado === "Detenida"
+          ? "stopped"
+          : maquina.estado === "Mantenimiento"
+            ? "maintenance"
+            : maquina.estado === "Fuera de servicio"
+              ? "stopped"
+              : "running",
+      oee: 0,
+      availability: 0,
+      performance: 0,
+      quality: 0,
+      uptime: 0,
+      downtime: 0,
+      partsProduced: 0,
+      partsTarget: 0,
+      defects: 0,
+      lastEvent: "Máquina registrada",
+      lastEventTime: new Date().toLocaleTimeString("es-MX"),
+      di: makeDI(Array(12).fill({ state: false })),
+      do_: makeDO(Array(6).fill({ state: false })),
+      downtimeLog: [],
+    };
+
+    onAddMachine(nuevaMaquina);
+    setMaquina({
+      nombre: "",
+      numero: "",
+      tipo: "",
+      otroTipo: "",
+      marca: "",
+      modelo: "",
+      area: "",
+      ubicacion: "",
+      estado: "Operativa",
+      comunicacion: "",
+      ip: "",
+      puerto: "",
+      sensores: "",
+      descripcion: "",
+    });
     setMostrarFormulario(false);
   };
 
@@ -1148,26 +1198,26 @@ function AgregarMaquina() {
       {/* BOTÓN AGREGAR MÁQUINA */}
       <button
         onClick={() => setMostrarFormulario(true)}
-        className="px-3 py-1.5 text-xs rounded bg-green-600 text-white hover:bg-green-700"
+        className="px-3 py-1.5 text-xs rounded bg-indigo-500 text-white hover:bg-purple-500"
       >
         Agregar Máquina
       </button>
 
       {/* MODAL */}
       {mostrarFormulario && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-grid /50 p-4">
 
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-xl shadow-xl">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-900 rounded-xl shadow-xl">
 
             {/* ENCABEZADO */}
             <div className="flex items-center justify-between px-6 py-4 border-b">
 
               <div>
-                <h2 className="text-xl font-bold text-gray-800">
+                <h2 className="text-xl font-bold text-while-100">
                   Agregar Máquina
                 </h2>
-
-                <p className="text-sm text-gray-500">
+                   <br />
+                <p className="text-sm text-whiel-500">
                   Registra la información de la maquinaria
                 </p>
               </div>
@@ -1188,7 +1238,7 @@ function AgregarMaquina() {
               {/* INFORMACIÓN GENERAL */}
               <section>
 
-                <h3 className="mb-4 text-sm font-semibold text-gray-700">
+                <h3 className="mb-4 text-sm font-semibold text-gray-300">
                   Información general
                 </h3>
 
@@ -1196,7 +1246,7 @@ function AgregarMaquina() {
 
                   {/* NOMBRE */}
                   <div>
-                    <label className="text-sm text-gray-600">
+                    <label className="text-sm text-gray-300">
                       Nombre de la máquina
                     </label>
 
@@ -1207,13 +1257,13 @@ function AgregarMaquina() {
                       onChange={handleChange}
                       placeholder="Ej. Máquina de Inyección 01"
                       required
-                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm bg-slate-900"
                     />
                   </div>
 
                   {/* ID */}
                   <div>
-                    <label className="text-sm text-gray-600">
+                    <label className="text-sm text-gray-300">
                       Número / ID
                     </label>
 
@@ -1229,7 +1279,7 @@ function AgregarMaquina() {
 
                   {/* TIPO */}
                   <div>
-                    <label className="text-sm text-gray-600">
+                    <label className="text-sm text-black-300">
                       Tipo de máquina
                     </label>
 
@@ -1238,7 +1288,7 @@ function AgregarMaquina() {
                       value={maquina.tipo}
                       onChange={handleChange}
                       required
-                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm bg-slate-900"
                     >
                       <option value="">Seleccionar...</option>
                       <option value="Inyección">Inyección</option>
@@ -1273,7 +1323,7 @@ function AgregarMaquina() {
 
                   {/* MARCA */}
                   <div>
-                    <label className="text-sm text-gray-600">
+                    <label className="text-sm text-while-300">
                       Marca
                     </label>
 
@@ -1289,7 +1339,7 @@ function AgregarMaquina() {
 
                   {/* MODELO */}
                   <div>
-                    <label className="text-sm text-gray-600">
+                    <label className="text-sm text-while-300">
                       Modelo
                     </label>
 
@@ -1309,14 +1359,14 @@ function AgregarMaquina() {
               {/* UBICACIÓN */}
               <section>
 
-                <h3 className="mb-4 text-sm font-semibold text-gray-700">
+                <h3 className="mb-4 text-sm font-semibold text-gray-300">
                   Ubicación y estado
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                   <div>
-                    <label className="text-sm text-gray-600">
+                    <label className="text-sm text-while-300">
                       Área
                     </label>
 
@@ -1324,7 +1374,7 @@ function AgregarMaquina() {
                       name="area"
                       value={maquina.area}
                       onChange={handleChange}
-                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm bg-slate-900"
                     >
                       <option value="">Seleccionar...</option>
                       <option value="Producción">Producción</option>
@@ -1338,7 +1388,7 @@ function AgregarMaquina() {
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-600">
+                    <label className="text-sm text-while-300">
                       Ubicación
                     </label>
 
@@ -1353,7 +1403,7 @@ function AgregarMaquina() {
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-600">
+                    <label className="text-sm text-while-300">
                       Estado
                     </label>
 
@@ -1361,15 +1411,13 @@ function AgregarMaquina() {
                       name="estado"
                       value={maquina.estado}
                       onChange={handleChange}
-                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm bg-slate-900"
                     >
                       <option value="Operativa">Operativa</option>
                       <option value="Detenida">Detenida</option>
-                      <option value="Mantenimiento">
-                        En mantenimiento
-                      </option>
-                      <option value="Fuera de servicio">
-                        Fuera de servicio
+                      <option value="Mantenimiento"> En mantenimiento
+                      </option> <option value="Fuera de servicio">
+                       Fuera de servicio
                       </option>
                     </select>
                   </div>
@@ -1380,92 +1428,44 @@ function AgregarMaquina() {
               {/* CONECTIVIDAD */}
               <section>
 
-                <h3 className="mb-4 text-sm font-semibold text-gray-700">
-                  Conectividad
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
                   <div>
-                    <label className="text-sm text-gray-600">
+                    <label className="text-sm text-while 300">
                       Comunicación
+                      <br />
                     </label>
-
-                    <select
-                      name="comunicacion"
-                      value={maquina.comunicacion}
-                      onChange={handleChange}
-                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
-                    >
-                      <option value="">Seleccionar...</option>
-                      <option value="TCP/IP">TCP/IP</option>
-                      <option value="Modbus TCP">Modbus TCP</option>
-                      <option value="MQTT">MQTT</option>
-                      <option value="OPC UA">OPC UA</option>
-                      <option value="EtherNet/IP">
-                        EtherNet/IP
-                      </option>
-                      <option value="Otro">Otro</option>
-                    </select>
-                  </div>
-
+                    <br />
                   <div>
-                    <label className="text-sm text-gray-600">
+                    <label className="text-sm text-While-300">
+                      
                       Dirección IP
                     </label>
+                    <br />
 
                     <input
+
                       type="text"
                       name="ip"
                       value={maquina.ip}
                       onChange={handleChange}
-                      placeholder="192.168.1.100"
+                      placeholder="Ejemplo 192.X.X.X"
                       className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
                     />
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-600">
-                      Puerto
-                    </label>
+                    
 
-                    <input
-                      type="text"
-                      name="puerto"
-                      value={maquina.puerto}
-                      onChange={handleChange}
-                      placeholder="502"
-                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
-                    />
                   </div>
 
                 </div>
               </section>
 
-              {/* SENSORES */}
-              <section>
-
-                <label className="text-sm text-gray-600">
-                  Sensores / señales disponibles
-                </label>
-
-                <textarea
-                  name="sensores"
-                  value={maquina.sensores}
-                  onChange={handleChange}
-                  rows={3}
-                  placeholder="Ej. Sensor de pieza, sensor de ciclo, alarma, paro..."
-                  className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
-                />
-
-              </section>
-
               {/* DESCRIPCIÓN */}
               <section>
-
-                <label className="text-sm text-gray-600">
+                <label className="text-sm text-While-300">
                   Descripción
                 </label>
+                <br />
 
                 <textarea
                   name="descripcion"
@@ -1475,7 +1475,6 @@ function AgregarMaquina() {
                   placeholder="Descripción de la máquina..."
                   className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
                 />
-
               </section>
 
               {/* BOTONES */}
@@ -1491,7 +1490,7 @@ function AgregarMaquina() {
 
                 <button
                   type="submit"
-                  className="px-4 py-2 text-sm rounded-lg bg-green-600 text-white hover:bg-green-700"
+                  className="px-4 py-2 text-sm rounded-lg bg-yellow-600 text-white hover:bg-pink-700"
                 >
                   Guardar Máquina
                 </button>
@@ -1509,7 +1508,7 @@ function AgregarMaquina() {
 /* ─────────────── App ─────────────── */
 export default function App() {
   const [view, setView] = useState<View>("dashboard");
-  const [machines] = useState<Machine[]>(MACHINES);
+  const [machines, setMachines] = useState<Machine[]>(MACHINES);
   const [alerts, setAlerts] = useState<Alert[]>(INITIAL_ALERTS);
   const [selectedMachine, setSelectedMachine] = useState<Machine | null>(null);
 
@@ -1520,6 +1519,10 @@ export default function App() {
 
   const handleAcknowledge = useCallback((id: string) => {
     setAlerts(prev => prev.map(a => a.id === id ? { ...a, acknowledged: true } : a));
+  }, []);
+
+  const handleAddMachine = useCallback((machine: Machine) => {
+    setMachines(prev => [...prev, machine]);
   }, []);
 
   const unackedCount = alerts.filter(a => !a.acknowledged).length;
@@ -1533,7 +1536,11 @@ export default function App() {
           <DashboardView machines={machines} alerts={alerts} onSelectMachine={handleSelectMachine} />
         )}
         {view === "machines" && (
-          <MachinesView machines={machines} onSelectMachine={handleSelectMachine} />
+          <MachinesView
+            machines={machines}
+            onSelectMachine={handleSelectMachine}
+            onAddMachine={handleAddMachine}
+          />
         )}
         {view === "machine-detail" && selectedMachine && (
           <MachineDetailView machine={selectedMachine} onBack={() => setView("machines")} />
