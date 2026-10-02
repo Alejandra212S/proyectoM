@@ -12,21 +12,23 @@ import {
 } from "lucide-react";
 
 /* ─────────────── Tipos ─────────────── */
-type MachineStatus = "running" | "stopped" | "alarm" | "maintenance";
+type MachineStatus = "running" | "stopped" | "alarm" | "maintenance" | "unknown";
 type View = "dashboard" | "machines" | "machine-detail" | "reports" | "alerts";
 
 interface DI { label: string; state: boolean }
 interface DO_ { label: string; state: boolean }
 
 interface Machine {
-  id: string; name: string; type: "inyeccion" | "ensamble" | "enlainadora" | "otro";
-  adam6050: string; status: MachineStatus;
-  oee: number; availability: number; performance: number; quality: number;
-  uptime: number; downtime: number;
-  partsProduced: number; partsTarget: number; defects: number;
+  id: string; number: string; name: string; brand: string; model: string; area: string; location: string;
+  type: "inyeccion" | "ensamble" | "enlainadora" | "otro";
+  adamAddress: string; status: MachineStatus;
+  oee: number | null; availability: number | null; performance: number | null; quality: number | null;
+  uptime: number | null; downtime: number | null;
+  partsProduced: number | null; partsTarget: number | null; defects: number | null;
   lastEvent: string; lastEventTime: string;
   di: DI[]; do_: DO_[];
   downtimeLog: { time: string; duration: number; reason: string }[];
+  raw: Record<string, unknown>;
 }
 
 interface Alert {
@@ -35,134 +37,134 @@ interface Alert {
   message: string; time: string; acknowledged: boolean;
 }
 
-/* ─────────────── DATOS ─────────────── */
-const makeDI = (overrides: Partial<DI>[] = []): DI[] =>
-  [
-    "Puerta cerrada", "Molde cerrado", "Sensor presión", "Fin de ciclo",
-    "Emergencia", "Temp OK", "Material OK", "Eyector avance",
-    "Eyector retorno", "Robot lista", "Cinta OK", "Reset",
-  ].map((label, i) => ({ label, state: overrides[i]?.state ?? Math.random() > 0.4 }));
+const normalizeColumn = (column: string) => column.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-const makeDO = (overrides: Partial<DO_>[] = []): DO_[] =>
-  [
-    "Motor principal", "Bomba hidráulica", "Calefactor zona 1",
-    "Calefactor zona 2", "Señal robot", "Alarma sonora",
-  ].map((label, i) => ({ label, state: overrides[i]?.state ?? Math.random() > 0.5 }));
+function readColumn(row: Record<string, unknown>, aliases: string[]) {
+  const names = new Set(aliases.map(normalizeColumn));
+  return Object.entries(row).find(([column]) => names.has(normalizeColumn(column)))?.[1];
+}
 
-const MACHINES: Machine[] = [
-  {
-    id: "", name: "", type: "inyeccion",
-    adam6050: "", status: "running",
-    oee: 0.00, availability: 0.00, performance: 0.00, quality: 0.00,
-    uptime: 0.00, downtime: 0.00, partsProduced: 0.00, partsTarget: 0.00, defects: 0.00,
-    lastEvent: "Inicio de ciclo", lastEventTime: "14:32:11",
-    di: makeDI([{state:true},{state:true},{state:true},{state:false},{state:false},{state:true},{state:true},{state:false},{state:true},{state:true},{state:true},{state:false}]),
-    do_: makeDO([{state:true},{state:true},{state:true},{state:true},{state:false},{state:false}]),
-    downtimeLog: [
-      { time: "07:15", duration: 12, reason: "Cambio de molde" },
-      { time: "10:44", duration: 8, reason: "Ajuste de material" },
-      { time: "13:02", duration: 8, reason: "Mantenimiento preventivo" },
-    ],
-  },
-  {
-    id: "", name: "", type: "inyeccion",
-    adam6050: "", status: "alarm",
-   oee: 0.00, availability: 0.00, performance: 0.00, quality: 0.00,
-    uptime: 0.00, downtime: 0.00, partsProduced: 0.00, partsTarget: 0.00, defects: 0.00,
-    lastEvent: "ALARMA: Temp. zona 2 alta", lastEventTime: "14:29:05",
-    di: makeDI([{state:true},{state:false},{state:false},{state:false},{state:true},{state:false},{state:true},{state:false},{state:false},{state:false},{state:true},{state:true}]),
-    do_: makeDO([{state:false},{state:true},{state:false},{state:false},{state:false},{state:true}]),
-    downtimeLog: [
-      { time: "06:30", duration: 45, reason: "Falla eléctrica" },
-      { time: "11:15", duration: 35, reason: "Sobrecalentamiento" },
-      { time: "14:28", duration: 40, reason: "Alarma activa" },
-    ],
-  },
-  {
-    id: "", name: "", type: "ensamble",
-    adam6050: "", status: "running",
-   oee: 0.00, availability: 0.00, performance: 0.00, quality: 0.00,
-    uptime: 0.00, downtime: 0.00, partsProduced: 0.00, partsTarget: 0.00, defects: 0.00,
-    lastEvent: "Ciclo completado", lastEventTime: "14:33:02",
-    di: makeDI(), do_: makeDO(),
-    downtimeLog: [
-      { time: "09:10", duration: 5, reason: "Abastecimiento de componentes" },
-    ],
-  },
-  {
-    id: "", name: "", type: "ensamble",
-    adam6050: "", status: "maintenance",
-    oee: 0, availability: 0, performance: 0, quality: 0,
-    uptime: 0, downtime: 440, partsProduced: 0, partsTarget: 4800, defects: 0,
-    lastEvent: "Mantenimiento programado", lastEventTime: "06:00:00",
-    di: makeDI(Array(12).fill({state: false})),
-    do_: makeDO(Array(6).fill({state: false})),
-    downtimeLog: [
-      { time: "06:00", duration: 440, reason: "Mantenimiento programado" },
-    ],
-  },
-  {
-    id: "", name: "", type: "enlainadora",
-    adam6050: "", status: "running",
-   oee: 0.00, availability: 0.00, performance: 0.00, quality: 0.00,
-    uptime: 0.00, downtime: 0.00, partsProduced: 0.00, partsTarget: 0.00, defects: 0.00,
-    lastEvent: "Rollo en proceso", lastEventTime: "14:31:44",
-    di: makeDI(), do_: makeDO(),
-    downtimeLog: [
-      { time: "08:20", duration: 18, reason: "Cambio de rollo" },
-      { time: "11:40", duration: 15, reason: "Ajuste de tensión" },
-      { time: "13:55", duration: 12, reason: "Limpieza de cabezal" },
-    ],
-  },
-  {
-    id: "", name: "", type: "enlainadora",
-    adam6050: "", status: "stopped",
-    oee: 0.00, availability: 0.00, performance: 0.00, quality: 0.00,
-    uptime: 0.00, downtime: 0.00, partsProduced: 0.00, partsTarget: 0.00, defects: 0.00,
-    lastEvent: "Paro por operador", lastEventTime: "11:18:33",
-    di: makeDI(Array(12).fill({state: false})),
-    do_: makeDO(Array(6).fill({state: false})),
-    downtimeLog: [
-      { time: "07:00", duration: 90, reason: "Sin material" },
-      { time: "11:18", duration: 162, reason: "Paro operador" },
-    ],
-  },
-];
+function readText(row: Record<string, unknown>, aliases: string[], fallback = "") {
+  const value = readColumn(row, aliases);
+  if (value === null || value === undefined) return fallback;
+  return value instanceof Date ? value.toLocaleString("es-MX") : String(value).trim() || fallback;
+}
 
-const INITIAL_ALERTS: Alert[] = [
-  { id: "A001", machineId: "INY-02", machineName: "Inyección #02", type: "alarm", message: "Temperatura zona 2 excede límite: 245°C (máx 230°C)", time: "14:29:05", acknowledged: false },
-  { id: "A002", machineId: "ENL-02", machineName: "Enlainadora #02", type: "warning", message: "Máquina detenida por operador — tiempo muerto acumulado: 162 min", time: "11:18:33", acknowledged: false },
-  { id: "A003", machineId: "INY-01", machineName: "Inyección #01", type: "info", message: "Eficiencia por debajo del objetivo (84.2% vs 90%)", time: "13:00:00", acknowledged: true },
-  { id: "A004", machineId: "ENS-02", machineName: "Ensamble #02", type: "info", message: "Mantenimiento programado en progreso — estimado 18:00", time: "06:00:00", acknowledged: true },
-];
+function readNumber(row: Record<string, unknown>, aliases: string[]) {
+  const value = readColumn(row, aliases);
+  if (value === null || value === undefined || value === "") return null;
+  const number = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(number) ? number : null;
+}
 
-const productionTrend = [
-  { hora: "06:00", real: 820, objetivo: 900 },
-  { hora: "07:00", real: 890, objetivo: 900 },
-  { hora: "08:00", real: 760, objetivo: 900 },
-  { hora: "09:00", real: 910, objetivo: 900 },
-  { hora: "10:00", real: 880, objetivo: 900 },
-  { hora: "11:00", real: 740, objetivo: 900 },
-  { hora: "12:00", real: 850, objetivo: 900 },
-  { hora: "13:00", real: 930, objetivo: 900 },
-  { hora: "14:00", real: 870, objetivo: 900 },
-];
+function readBoolean(value: unknown) {
+  if (typeof value === "boolean") return value;
+  return ["1", "true", "yes", "si", "on"].includes(String(value).toLowerCase());
+}
 
-const oeeHistory = [
-  { dia: "Lun", INY01: 88, INY02: 72, ENS01: 93, ENL01: 81 },
-  { dia: "Mar", INY01: 85, INY02: 68, ENS01: 91, ENL01: 79 },
-  { dia: "Mié", INY01: 82, INY02: 64, ENS01: 94, ENL01: 83 },
-  { dia: "Jue", INY01: 87, INY02: 70, ENS01: 92, ENL01: 77 },
-  { dia: "Vie", INY01: 84, INY02: 61, ENS01: 92, ENL01: 80 },
-];
+function parseStatus(value: string): MachineStatus {
+  const status = normalizeColumn(value);
+  if (/alarma|alarm|fault|error/.test(status)) return "alarm";
+  if (/manten|maintenance/.test(status)) return "maintenance";
+  if (/deten|paro|stopped|stop|inactiv/.test(status)) return "stopped";
+  if (/oper|running|activo|active|produccion/.test(status)) return "running";
+  return "unknown";
+}
 
-const downtimeByReason = [
-  { name: "Cambio de molde/rollo", value: 45, color: "#3B82F6" },
-  { name: "Falla mecánica", value: 28, color: "#EF4444" },
-  { name: "Sin material", value: 18, color: "#F59E0B" },
-  { name: "Mantenimiento", value: 22, color: "#A855F7" },
-  { name: "Paro operador", value: 12, color: "#6B7A8D" },
-];
+function parseMachineType(value: string): Machine["type"] {
+  const type = normalizeColumn(value);
+  if (type.includes("inyecc")) return "inyeccion";
+  if (type.includes("ensambl")) return "ensamble";
+  if (type.includes("enlain")) return "enlainadora";
+  return "otro";
+}
+
+function readDowntimeLog(row: Record<string, unknown>) {
+  let value = readColumn(row, ["downtimeLog", "paros", "tiemposMuertos"]);
+  if (typeof value === "string") {
+    try { value = JSON.parse(value); } catch { return []; }
+  }
+  if (!Array.isArray(value)) return [];
+  return value.flatMap(item => {
+    if (!item || typeof item !== "object") return [];
+    const entry = item as Record<string, unknown>;
+    const duration = readNumber(entry, ["duration", "duracion", "minutos"]);
+    if (duration === null) return [];
+    return [{
+      time: readText(entry, ["time", "hora", "fecha"]),
+      duration,
+      reason: readText(entry, ["reason", "causa", "motivo"], "Sin causa"),
+    }];
+  });
+}
+
+function mapMachine(row: Record<string, unknown>, index: number): Machine {
+  const id = readText(row, ["id", "machineId", "maquinaId", "numero", "codigo", "clave"], `SQL-${index + 1}`);
+  const number = readText(row, ["numeroMaquina", "codigo", "numero"]);
+  const name = readText(row, ["name", "nombre", "maquina", "descripcion"], id);
+  const typeText = readText(row, ["type", "tipo", "categoria"], name);
+  const digitalInputs = Object.entries(row).filter(([key]) => /^DI_?\d+$/i.test(key));
+  const digitalOutputs = Object.entries(row).filter(([key]) => /^DO_?\d+$/i.test(key));
+  const toSignals = (signals: [string, unknown][]) => signals.map(([label, value]) => ({ label, state: readBoolean(value) }));
+
+  return {
+    id,
+    number,
+    name,
+    brand: readText(row, ["marca", "brand"]),
+    model: readText(row, ["modelo", "model"]),
+    area: readText(row, ["area"]),
+    location: readText(row, ["ubicacion", "location"]),
+    type: parseMachineType(typeText),
+    adamAddress: readText(row, ["adam6050", "ip", "ipAddress", "direccionIp"]),
+    status: parseStatus(readText(row, ["status", "estado", "estatus", "state"])),
+    oee: readNumber(row, ["oee", "oeePercent"]),
+    availability: readNumber(row, ["availability", "disponibilidad"]),
+    performance: readNumber(row, ["performance", "rendimiento"]),
+    quality: readNumber(row, ["quality", "calidad"]),
+    uptime: readNumber(row, ["uptime", "tiempoActivo"]),
+    downtime: readNumber(row, ["downtime", "tiempoMuerto"]),
+    partsProduced: readNumber(row, ["partsProduced", "piezasProducidas", "piezasHoy"]),
+    partsTarget: readNumber(row, ["partsTarget", "objetivoPiezas", "metaPiezas"]),
+    defects: readNumber(row, ["defects", "defectos"]),
+    lastEvent: readText(row, ["lastEvent", "ultimoEvento", "evento"]),
+    lastEventTime: readText(row, ["lastEventTime", "horaEvento", "fechaActualizacion", "fechaLectura", "updatedAt"]),
+    di: toSignals(digitalInputs),
+    do_: toSignals(digitalOutputs),
+    downtimeLog: readDowntimeLog(row),
+    raw: row,
+  };
+}
+
+function sumMetrics(values: (number | null)[]) {
+  const available = values.filter((value): value is number => value !== null);
+  return available.length ? available.reduce((sum, value) => sum + value, 0) : null;
+}
+
+function averageMetrics(values: (number | null)[]) {
+  const available = values.filter((value): value is number => value !== null);
+  return available.length ? available.reduce((sum, value) => sum + value, 0) / available.length : null;
+}
+
+function formatMetric(value: number | null, decimals = 0) {
+  return value === null ? "—" : value.toLocaleString("es-MX", { maximumFractionDigits: decimals });
+}
+
+function formatDatabaseValue(value: unknown) {
+  if (value === null || value === undefined) return "—";
+  if (value instanceof Date) return value.toLocaleString("es-MX");
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
+}
+
+function groupDowntime(machines: Machine[]) {
+  const totals = new Map<string, number>();
+  machines.flatMap(machine => machine.downtimeLog).forEach(entry => {
+    totals.set(entry.reason, (totals.get(entry.reason) ?? 0) + entry.duration);
+  });
+  const colors = ["#3B82F6", "#EF4444", "#F59E0B", "#22C55E", "#6B7A8D"];
+  return [...totals].map(([name, value], index) => ({ name, value, color: colors[index % colors.length] }));
+}
 
 /* ───────────────  Definición de colores de operación de maquina  ─────────────── */
 const STATUS_COLOR: Record<MachineStatus, string> = {
@@ -170,6 +172,7 @@ const STATUS_COLOR: Record<MachineStatus, string> = {
   stopped: "#F59E0B",
   alarm: "#EF4444",
   maintenance: "#3B82F6",
+  unknown: "#6B7A8D",
 };
 
 {/*Estados de las maquinas*/}
@@ -179,6 +182,7 @@ const STATUS_LABEL: Record<MachineStatus, string> = {
   stopped: "DETENIDA",
   alarm: "ALARMA",
   maintenance: "MANTENIMIENTO",
+  unknown: "SIN DATO",
 };
 const TYPE_LABEL: Record<Machine["type"], string> = {
   inyeccion: "Inyección",
@@ -258,7 +262,8 @@ function KpiCard({ label, value, unit, sub, trend }: {
 }
 
 function MachineCard({ machine, onClick }: { machine: Machine; onClick: () => void }) {
-  const oeeColor = machine.oee >= 85 ? "#22C55E" : machine.oee >= 65 ? "#F59E0B" : machine.oee > 0 ? "#EF4444" : "#6B7A8D";
+  const oee = machine.oee ?? 0;
+  const oeeColor = oee >= 85 ? "#22C55E" : oee >= 65 ? "#F59E0B" : oee > 0 ? "#EF4444" : "#6B7A8D";
   return (
     <button
       onClick={onClick}
@@ -272,11 +277,16 @@ function MachineCard({ machine, onClick }: { machine: Machine; onClick: () => vo
           </div>
           <h3 className="font-semibold text-sm text-foreground">{machine.name}</h3>
           <span className="text-xs text-muted-foreground">{TYPE_LABEL[machine.type]}</span>
+          <div className="mt-2 space-y-1 text-[11px] text-muted-foreground">
+            <p className="truncate">{machine.number || machine.id} · {machine.brand || "Marca sin registrar"} {machine.model}</p>
+            <p className="truncate">{machine.area || "Área sin registrar"} · {machine.location || "Ubicación sin registrar"}</p>
+            <p className="truncate">ADAM-5060: {machine.adamAddress || "Sin configurar"}</p>
+          </div>
         </div>
         <div className="relative" style={{ width: 52, height: 52 }}>
-          <OEERing value={machine.oee} size={52} stroke={5} />
+          <OEERing value={oee} size={52} stroke={5} />
           <span className="absolute inset-0 flex items-center justify-center font-mono text-[10px] font-bold" style={{ color: oeeColor }}>
-            {machine.oee > 0 ? `${machine.oee.toFixed(0)}%` : "—"}
+            {machine.oee !== null ? `${machine.oee.toFixed(0)}%` : "—"}
           </span>
         </div>
       </div>
@@ -290,7 +300,7 @@ function MachineCard({ machine, onClick }: { machine: Machine; onClick: () => vo
           <div key={l} className="bg-muted/60 rounded p-2">
             <div className="text-[10px] text-muted-foreground mb-1">{l}</div>
             <div className="font-mono text-xs font-bold text-foreground">
-              {v > 0 ? `${v.toFixed(1)}%` : "—"}
+              {v !== null ? `${v.toFixed(1)}%` : "—"}
             </div>
           </div>
         ))}
@@ -299,10 +309,10 @@ function MachineCard({ machine, onClick }: { machine: Machine; onClick: () => vo
       <div className="flex items-center justify-between text-xs">
         <div className="flex items-center gap-1 text-muted-foreground font-mono">
           <Package size={11} />
-          <span>{machine.partsProduced.toLocaleString()} / {machine.partsTarget.toLocaleString()} pzs</span>
+          <span>{formatMetric(machine.partsProduced)} / {formatMetric(machine.partsTarget)} pzs</span>
         </div>
         <div className="flex items-center gap-1 text-muted-foreground">
-          <span className="font-mono text-[10px] truncate max-w-[100px]">{machine.lastEventTime}</span>
+          <span className="font-mono text-[10px] truncate max-w-[100px]">{machine.lastEventTime || "—"}</span>
           <ChevronRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity text-primary" />
         </div>
       </div>
@@ -328,10 +338,10 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
   const alarmCount = machines.filter(m => m.status === "alarm").length;
   const unacked = alerts.filter(a => !a.acknowledged).length;
 
-  const totalProduced = machines.reduce((s, m) => s + m.partsProduced, 0);
-  const totalTarget = machines.reduce((s, m) => s + m.partsTarget, 0);
-  const avgOee = machines.filter(m => m.status !== "maintenance").reduce((s, m, _, a) => s + m.oee / a.length, 0);
-  const totalDowntime = machines.reduce((s, m) => s + m.downtime, 0);
+  const totalProduced = sumMetrics(machines.map(m => m.partsProduced));
+  const totalTarget = sumMetrics(machines.map(m => m.partsTarget));
+  const avgOee = averageMetrics(machines.filter(m => m.status !== "maintenance").map(m => m.oee));
+  const downtimeByReason = groupDowntime(machines);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload) return null;
@@ -357,7 +367,7 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
           <div className="font-mono text-2xl font-bold text-foreground tracking-widest">{fmtTime(now)}</div>
           <div className="flex items-center gap-1.5 justify-end mt-1">
             <span className="inline-flex h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-[11px] text-muted-foreground font-mono"> 6 maquinas conectadas</span>
+            <span className="text-[11px] text-muted-foreground font-mono">{machines.length} máquinas recibidas</span>
           </div>
         </div>
       </div>
@@ -366,11 +376,12 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
-        <KpiCard label="OEE Promedio" value={avgOee.toFixed(1)} unit="%" sub="Maquinaria activa" trend="down" />
+        <KpiCard label="OEE Promedio" value={formatMetric(avgOee, 1)} unit="%" sub="Maquinaria activa" />
 
-        <KpiCard label="Piezas Producidas" value={totalProduced.toLocaleString()} unit="pzs"
-          sub={`Objetivo: ${totalTarget.toLocaleString()}`} trend="up" />
-        <KpiCard label="Tiempo Muerto" value={totalDowntime} unit="min" sub="Acumulado hoy" trend="down" />
+        <KpiCard label="Piezas Producidas" value={formatMetric(totalProduced)} unit="pzs"
+        /*se quita la parte de tiempo muerto  */
+
+          sub={`Objetivo: ${formatMetric(totalTarget)}`} />
         <KpiCard label="Alarmas Activas" value={unacked} unit=""
           sub={`${running} máq. en operación`} trend={unacked > 0 ? "up" : null} />
       </div>
@@ -403,28 +414,15 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
             <h3 className="text-sm font-semibold text-foreground">Producción por Hora — Hoy</h3>
             <span className="text-[11px] font-mono text-muted-foreground">pzs/hr promedio</span>
           </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <AreaChart data={productionTrend} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-              <defs>
-                <linearGradient id="prodGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#FF5C00" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#FF5C00" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="hora" tick={{ fill: "#6B7A8D", fontSize: 10, fontFamily: "JetBrains Mono" }} tickLine={false} axisLine={false} />
-              <YAxis tick={{ fill: "#6B7A8D", fontSize: 10, fontFamily: "JetBrains Mono" }} tickLine={false} axisLine={false} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="objetivo" stroke="#1A2338" fill="none" strokeDasharray="4 4" strokeWidth={1.5} dot={false} name="Objetivo" />
-              <Area type="monotone" dataKey="real" stroke="#FF5C00" fill="url(#prodGrad)" strokeWidth={2} dot={false} name="Real" />
-            </AreaChart>
-          </ResponsiveContainer>
+          <p className="flex h-[180px] items-center justify-center text-sm text-muted-foreground">
+            La tabla Maquinas no contiene historial de producción por hora.
+          </p>
         </div>
 
         {/* Tiempo muerto por causa  */}
         <div className="bg-card border border-border rounded p-5">
-          <h3 className="text-sm font-semibold text-foreground mb-4">Tiempo Muerto por Causa</h3>
-          <div className="flex justify-center">
+          <h3 className="text-sm font-semibold text-foreground mb-4">Paro por causa </h3>
+          {downtimeByReason.length > 0 ? <div className="flex justify-center">
             <PieChart width={140} height={140}>
               <Pie data={downtimeByReason} cx={65} cy={65} innerRadius={42} outerRadius={62}
                 dataKey="value" paddingAngle={3}>
@@ -433,7 +431,7 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
                 ))}
               </Pie>
             </PieChart>
-          </div>
+          </div> : <p className="py-8 text-center text-xs text-muted-foreground">Sin registros de paros en la base de datos.</p>}
           <div className="space-y-2 mt-2">
             {downtimeByReason.map(d => (
               <div key={d.name} className="flex items-center gap-2 text-[11px]">
@@ -476,6 +474,7 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
               </div>
             );
           })}
+          {alerts.length === 0 && <p className="px-4 py-5 text-sm text-muted-foreground">La API de máquinas no incluye alertas.</p>}
         </div>
       </div>
     </div>
@@ -485,12 +484,8 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
 function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () => void }) {
   const [tab, setTab] = useState<"io" | "downtime" | "history">("io");
 
-  const oeeColor = machine.oee >= 85 ? "#22C55E" : machine.oee >= 65 ? "#F59E0B" : machine.oee > 0 ? "#EF4444" : "#6B7A8D";
-  const hourlyData = [
-    { hora: "", pzs: ""}, { hora: "0", pzs: 460 }, { hora: "08", pzs: 380 },
-    { hora: "09", pzs: 490 }, { hora: "10", pzs: 445 }, { hora: "11", pzs: 370 },
-    { hora: "12", pzs: 430 }, { hora: "13", pzs: 510 }, { hora: "14", pzs: 335 },
-  ];
+  const oee = machine.oee ?? 0;
+  const oeeColor = oee >= 85 ? "#22C55E" : oee >= 65 ? "#F59E0B" : oee > 0 ? "#EF4444" : "#6B7A8D";
 
   return (
     <div className="p-6 space-y-6">
@@ -510,7 +505,7 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
             <StatusDot status={machine.status} />
             <span className="font-mono text-xs text-muted-foreground">{machine.id}</span>
             <span className="font-mono text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded">
-            / {machine.adam6050}
+            / {machine.adamAddress}
             </span>
           </div>
           <h1 className="text-xl font-bold text-foreground">{machine.name}</h1>
@@ -519,10 +514,10 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
           </p>
         </div>
         <div className="relative" style={{ width: 96, height: 96 }}>
-          <OEERing value={machine.oee} size={96} stroke={8} />
+          <OEERing value={machine.oee ?? 0} size={96} stroke={8} />
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="font-mono text-xl font-bold leading-none" style={{ color: oeeColor }}>
-              {machine.oee > 0 ? `${machine.oee.toFixed(1)}` : "—"}
+              {machine.oee === null ? "—" : machine.oee.toFixed(1)}
             </span>
             <span className="font-mono text-[10px] text-muted-foreground">OEE %</span>
           </div>
@@ -533,34 +528,35 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
       {/* Indicador de rendimiento */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         {[
-          { l: "Disponibilidad", v: machine.availability, u: "%" },
           { l: "Rendimiento", v: machine.performance, u: "%" },
           { l: "Calidad", v: machine.quality, u: "%" },
-          { l: "Piezas hoy", v: machine.partsProduced.toLocaleString(), u: "pzs" },
-          { l: "Tiempo muerto", v: machine.downtime, u: "min" },
+          { l: "Piezas", v: machine.partsProduced, u: "pzs" },
         ].map(({ l, v, u }) => (
           <div key={l} className="bg-card border border-border rounded p-3">
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{l}</div>
-            <div className="font-mono text-lg font-bold text-foreground">{typeof v === "number" && v > 0 ? v : v === 0 ? "0" : v}{u && <span className="text-xs text-muted-foreground ml-0.5">{u}</span>}</div>
+            <div className="font-mono text-lg font-bold text-foreground">{formatMetric(v, 1)}{u && <span className="text-xs text-muted-foreground ml-0.5">{u}</span>}</div>
           </div>
         ))}
       </div>
 
+      <section className="bg-card border border-border rounded p-5">
+        <h3 className="text-sm font-semibold text-foreground mb-4">Datos recibidos de SQL Server</h3>
+        <dl className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-3">
+          {Object.entries(machine.raw).map(([column, value]) => (
+            <div key={column} className="min-w-0">
+              <dt className="text-[10px] uppercase text-muted-foreground">{column}</dt>
+              <dd className="break-words text-sm text-foreground">{formatDatabaseValue(value)}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
       {/* Estadisticas de piezas por hora */}
       <div className="bg-card border border-border rounded p-5">
         <h3 className="text-sm font-semibold text-foreground mb-4">Piezas por Hora — Hoy</h3>
-        <ResponsiveContainer width="100%" height={140}>
-          <BarChart data={hourlyData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-            <XAxis dataKey="hora" tick={{ fill: "#6B7A8D", fontSize: 10, fontFamily: "JetBrains Mono" }} tickLine={false} axisLine={false} />
-            <YAxis tick={{ fill: "#6B7A8D", fontSize: 10, fontFamily: "JetBrains Mono" }} tickLine={false} axisLine={false} />
-            <Tooltip
-              contentStyle={{ background: "#0F1724", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 4, fontSize: 11, fontFamily: "JetBrains Mono", color: "#D8E0EA" }}
-              cursor={{ fill: "rgba(255,92,0,0.08)" }}
-            />
-            <Bar dataKey="pzs" fill="#FF5C00" radius={[2, 2, 0, 0]} maxBarSize={32} name="Piezas" />
-          </BarChart>
-        </ResponsiveContainer>
+        <p className="flex h-[140px] items-center justify-center text-sm text-muted-foreground">
+          La tabla Maquinas no contiene historial por hora.
+        </p>
       </div>
 
       {/* Tabs */}
@@ -612,11 +608,11 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
                 ))}
               </div>
               <div className="mt-4 p-3 bg-muted/30 rounded border border-border">
-                <div className="text-[10px] text-muted-foreground mb-1 font-mono uppercase tracking-wider">Módulo ADAM-6050</div>
-                <div className="font-mono text-xs text-foreground">{machine.adam6050}:502</div>
+                <div className="text-[10px] text-muted-foreground mb-1 font-mono uppercase tracking-wider">Controlador ADAM-5000/TCP</div>
+                <div className="font-mono text-xs text-foreground">{machine.adamAddress || "IP sin configurar"}</div>
                 <div className="flex items-center gap-1.5 mt-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                  <span className="text-[10px] text-green-400 font-mono">Modbus TCP — Conectado</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground font-mono">ADAM-5060 · Estados en SQL</span>
                 </div>
               </div>
             </div>
@@ -628,22 +624,18 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  {["Hora", "Duración (min)", "Causa", "Impacto OEE"].map(h => (
+                  {["Hora", "Duración (min)", "Causa"].map(h => (
                     <th key={h} className="pb-3 text-left text-[11px] uppercase tracking-wider text-muted-foreground font-medium">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {machine.downtimeLog.map((row, i) => {
-                  const oeeImpact = ((row.duration / 440) * 100).toFixed(1);
                   return (
                     <tr key={i} className="hover:bg-muted/30 transition-colors">
                       <td className="py-3 font-mono text-xs text-foreground">{row.time}</td>
                       <td className="py-3 font-mono text-xs text-foreground">{row.duration}</td>
                       <td className="py-3 text-xs text-muted-foreground">{row.reason}</td>
-                      <td className="py-3">
-                        <span className="font-mono text-xs text-red-400">−{oeeImpact}%</span>
-                      </td>
                     </tr>
                   );
                 })}
@@ -654,10 +646,6 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
                   <td className="pt-3 font-mono text-xs font-bold text-red-400">
                     {machine.downtimeLog.reduce((s, r) => s + r.duration, 0)} min
                   </td>
-                  <td />
-                  <td className="pt-3 font-mono text-xs text-red-400">
-                    −{((machine.downtimeLog.reduce((s, r) => s + r.duration, 0) / 440) * 100).toFixed(1)}%
-                  </td>
                 </tr>
               </tfoot>
             </table>
@@ -666,20 +654,9 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
 
         {tab === "history" && (
           <div className="p-5">
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={oeeHistory} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="dia" tick={{ fill: "#6B7A8D", fontSize: 10, fontFamily: "JetBrains Mono" }} tickLine={false} axisLine={false} />
-                <YAxis domain={[50, 100]} tick={{ fill: "#6B7A8D", fontSize: 10, fontFamily: "JetBrains Mono" }} tickLine={false} axisLine={false} />
-                <Tooltip
-                  contentStyle={{ background: "#0F1724", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 4, fontSize: 11, fontFamily: "JetBrains Mono", color: "#D8E0EA" }}
-                />
-                <Line type="monotone" dataKey="INY01" stroke="#FF5C00" strokeWidth={2} dot={{ fill: "#FF5C00", r: 3 }} name="Inyección #01" />
-                <Line type="monotone" dataKey="INY02" stroke="#EF4444" strokeWidth={2} dot={{ fill: "#EF4444", r: 3 }} name="Inyección #02" />
-                <Line type="monotone" dataKey="ENS01" stroke="#22C55E" strokeWidth={2} dot={{ fill: "#22C55E", r: 3 }} name="Ensamble #01" />
-                <Line type="monotone" dataKey="ENL01" stroke="#3B82F6" strokeWidth={2} dot={{ fill: "#3B82F6", r: 3 }} name="Enlainadora #01" />
-              </LineChart>
-            </ResponsiveContainer>
+            <p className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">
+              La tabla Maquinas no contiene historial de OEE.
+            </p>
           </div>
         )}
       </div>
@@ -690,7 +667,7 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
 function MachinesView({ machines, onSelectMachine, onAddMachine }: {
   machines: Machine[];
   onSelectMachine: (m: Machine) => void;
-  onAddMachine: (m: Machine) => void;
+  onAddMachine: (m: Machine) => Promise<void>;
 }) {
   const [filter, setFilter] = useState<Machine["type"] | "all">("all");
   const filtered = filter === "all" ? machines : machines.filter(m => m.type === filter);
@@ -708,9 +685,7 @@ function MachinesView({ machines, onSelectMachine, onAddMachine }: {
               {l}
             </button>
           ))}
-         {/*Boton para agregar maquina*/} 
-         
-        <AgregarMaquina onAddMachine={onAddMachine} />
+          <AgregarMaquina onAddMachine={onAddMachine} />
         </div>
       </div>
          
@@ -722,6 +697,7 @@ function MachinesView({ machines, onSelectMachine, onAddMachine }: {
           <MachineCard key={m.id} machine={m} onClick={() => onSelectMachine(m)} />
         ))}
       </div>
+      {filtered.length === 0 && <p className="text-sm text-muted-foreground">No hay máquinas devueltas por la base de datos.</p>}
       {/* Resumen de maquinaria  */}
       <div className="bg-card border border-border rounded overflow-hidden">
         <div className="px-5 py-3 border-b border-border">
@@ -731,7 +707,7 @@ function MachinesView({ machines, onSelectMachine, onAddMachine }: {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                {["Máquina", "ADAM-6050 IP", "Estado", "OEE", "Disponib.", "Rend.", "Calidad", "Piezas", "T. Muerto"].map(h => (
+                {["Máquina", "Marca / Modelo", "Área", "Ubicación", "ADAM-5060", "Estado", "OEE", "Disponib.", "Rend.", "Calidad", "Piezas", "T. Muerto"].map(h => (
                   <th key={h} className="px-4 py-2.5 text-left text-[11px] uppercase tracking-wider text-muted-foreground font-medium whitespace-nowra0p">{h}</th>
                 ))}
               </tr>
@@ -745,27 +721,30 @@ function MachinesView({ machines, onSelectMachine, onAddMachine }: {
                       <StatusDot status={m.status} />
                       <div>
                         <div className="text-xs font-semibold text-foreground">{m.name}</div>
-                        <div className="font-mono text-[10px] text-muted-foreground">{m.id}</div>
+                        <div className="font-mono text-[10px] text-muted-foreground">{m.number || m.id}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{m.adam6050}</td>
+                  <td className="px-4 py-3 text-xs text-foreground">{[m.brand, m.model].filter(Boolean).join(" ") || "Sin registrar"}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{m.area || "Sin registrar"}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{m.location || "Sin registrar"}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{m.adamAddress || "Sin configurar"}</td>
                   <td className="px-4 py-3">
                     <span className="text-xs font-mono" style={{ color: STATUS_COLOR[m.status] }}>
                       {STATUS_LABEL[m.status]}
                     </span>
                   </td>
                   <td className="px-4 py-3 font-mono text-xs font-bold" style={{
-                    color: m.oee >= 85 ? "#22C55E" : m.oee >= 65 ? "#F59E0B" : m.oee > 0 ? "#EF4444" : "#6B7A8D"
+                    color: (m.oee ?? 0) >= 85 ? "#22C55E" : (m.oee ?? 0) >= 65 ? "#F59E0B" : (m.oee ?? 0) > 0 ? "#EF4444" : "#6B7A8D"
                   }}>
-                    {m.oee > 0 ? `${m.oee.toFixed(1)}%` : "—"}
+                    {m.oee === null ? "—" : `${m.oee.toFixed(1)}%`}
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-foreground">{m.availability > 0 ? `${m.availability.toFixed(1)}%` : "—"}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-foreground">{m.performance > 0 ? `${m.performance.toFixed(1)}%` : "—"}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-foreground">{m.quality > 0 ? `${m.quality.toFixed(1)}%` : "—"}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-foreground">{m.partsProduced.toLocaleString()}</td>
-                  <td className="px-4 py-3 font-mono text-xs" style={{ color: m.downtime > 60 ? "#EF4444" : "#D8E0EA" }}>
-                    {m.downtime} min
+                  <td className="px-4 py-3 font-mono text-xs text-foreground">{m.availability === null ? "—" : `${formatMetric(m.availability, 1)}%`}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-foreground">{m.performance === null ? "—" : `${formatMetric(m.performance, 1)}%`}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-foreground">{m.quality === null ? "—" : `${formatMetric(m.quality, 1)}%`}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-foreground">{formatMetric(m.partsProduced)}</td>
+                  <td className="px-4 py-3 font-mono text-xs" style={{ color: (m.downtime ?? 0) > 60 ? "#EF4444" : "#D8E0EA" }}>
+                    {formatMetric(m.downtime)} min
                   </td>
                 </tr>
               ))}
@@ -778,71 +757,36 @@ function MachinesView({ machines, onSelectMachine, onAddMachine }: {
 }
 
 function ReportsView({ machines }: { machines: Machine[] }) {
-  const [period, setPeriod] = useState<"hoy" | "semana" | "mes">("semana");
-
-  const weeklyOEE = [
-    { machine: "", lun: 0.00, mar: 0.00, mié: 0.00, jue: 0.00, vie: 0.00, prom: 0.00 },
-    { machine: "", lun: 0.00, mar: 0.00, mié: 0.00, jue: 0.00, vie: 0.00, prom: 0.00 },
-    { machine: "", lun: 0.00, mar: 0.00, mié: 0.00, jue: 0.00, vie: 0.00, prom: 0.00 },
-    { machine: "", lun: 0.00, mar: 0.00, mié: 0.00, jue: 0.00, vie: 0.00, prom: 0.00 },
-     { machine: "", lun: 0.00, mar: 0.00, mié: 0.00, jue: 0.00, vie: 0.00, prom: 0.00 },
-    { machine: "", lun: 0.00, mar: 0.00, mié: 0.00, jue: 0.00, vie: 0.00, prom: 0.00 },
-   
-  ];
-
-  const efficiencyData = weeklyOEE.map(r => ({
-    name: r.machine.replace("Inyección", "INY").replace("Ensamble", "ENS").replace("Enlainadora", "ENL").replace(" #", "-"),
-    oee: r.prom,
-    objetivo: 85,
-  }));
-
-  const dias = ["lun", "mar", "mié", "jue", "vie"] as const;
+  const averageOee = averageMetrics(machines.map(machine => machine.oee));
+  const totalProduced = sumMetrics(machines.map(machine => machine.partsProduced));
+  const totalDefects = sumMetrics(machines.map(machine => machine.defects));
+  const downtimeByReason = groupDowntime(machines);
+  const efficiencyData = machines.flatMap(machine => machine.oee === null ? [] : [{ name: machine.name, oee: machine.oee }]);
+  const maxDowntime = Math.max(...machines.map(machine => machine.downtime ?? 0), 1);
+  const maxDowntimeReason = Math.max(...downtimeByReason.map(entry => entry.value), 1);
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">Reportes de Producción</h1>
-        <div className="flex items-center gap-3">
-          <div className="flex gap-1 bg-muted rounded p-1">
-            {([["hoy", "Hoy"], ["semana", "Semana"], ["mes", "Mes"]] as const).map(([v, l]) => (
-              <button key={v} onClick={() => setPeriod(v)}
-                className={`px-3 py-1 text-xs rounded transition-colors ${period === v ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-                {l}
-              </button>
-            ))}
-          </div>
-          <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors bg-muted px-3 py-2 rounded">
-            <Download size={12} />
-            Exportar CSV
-          </button>
-
-          <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors bg-muted px-3 py-2 rounded">
-            <Download size={12} />
-            Exportar pdf
-          </button>
-        </div>
       </div>
 
-      {/* Suma de oeee promedio */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { l: "OEE Promedio Planta", v: "74.2", u: "%", note: "Objetivo: %" },
-          { l: "Total Piezas", v: "22,800", u: "", note: "Objetivo: " },
-          { l: "Tiempo Muerto Total", v: "853", u: "min", note: "Esta semana" },
-          { l: "Tasa de Defectos", v: "0.88", u: "%", note: "" },
-        ].map(({ l, v, u, note }) => (
+          { l: "OEE actual promedio", v: formatMetric(averageOee, 1), u: "%" },
+          { l: "Piezas reportadas", v: formatMetric(totalProduced), u: "" },
+          { l: "Defectos reportados", v: formatMetric(totalDefects), u: "" },
+        ].map(({ l, v, u }) => (
           <div key={l} className="bg-card border border-border rounded p-4">
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">{l}</div>
             <div className="font-mono text-2xl font-bold text-foreground">{v}<span className="text-sm text-muted-foreground ml-1">{u}</span></div>
-            <div className="text-[11px] text-muted-foreground mt-1">{note}</div>
           </div>
         ))}
       </div>
 
-      {/* OEE por máquina -  */}
       <div className="bg-card border border-border rounded p-5">
-        <h3 className="text-sm font-semibold text-foreground mb-4">OEE por Máquina — Semana actual</h3>
-        <ResponsiveContainer width="100%" height={200}>
+        <h3 className="text-sm font-semibold text-foreground mb-4">OEE actual por máquina</h3>
+        {efficiencyData.length > 0 ? <ResponsiveContainer width="100%" height={200}>
           <BarChart data={efficiencyData} margin={{ top: 4, right: 4, bottom: 0, left: -15 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
             <XAxis dataKey="name" tick={{ fill: "#6B7A8D", fontSize: 10, fontFamily: "JetBrains Mono" }} tickLine={false} axisLine={false} />
@@ -851,52 +795,36 @@ function ReportsView({ machines }: { machines: Machine[] }) {
               contentStyle={{ background: "#0F1724", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 4, fontSize: 11, fontFamily: "JetBrains Mono", color: "#D8E0EA" }}
               cursor={{ fill: "rgba(255,92,0,0.06)" }}
             />
-            <Bar dataKey="objetivo" fill="rgba(255,255,255,0.06)" radius={[2, 2, 0, 0]} maxBarSize={32} name="Objetivo" />
             <Bar dataKey="oee" radius={[2, 2, 0, 0]} maxBarSize={32} name="OEE %">
               {efficiencyData.map((e, i) => (
                 <Cell key={i} fill={e.oee >= 85 ? "#22C55E" : e.oee >= 65 ? "#F59E0B" : "#EF4444"} />
               ))}
             </Bar>
           </BarChart>
-        </ResponsiveContainer>
+        </ResponsiveContainer> : <p className="py-8 text-center text-sm text-muted-foreground">La tabla no contiene valores de OEE.</p>}
       </div>
 
-      {/* Tabla de detalles OOE general  */}
       <div className="bg-card border border-border rounded overflow-hidden">
-        <div className="px-5 py-3 border-b border-border flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-foreground">OEE Diario por Máquina</h3>
-          <span className="text-[11px] font-mono text-muted-foreground">Semana 37 — Sep 2026</span>
+        <div className="px-5 py-3 border-b border-border">
+          <h3 className="text-sm font-semibold text-foreground">Datos actuales por máquina</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/30">
                 <th className="px-4 py-2.5 text-left text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Máquina</th>
-                {["Lun", "Mar", "Mié", "Jue", "Vie"].map(d => (
-                  <th key={d} className="px-4 py-2.5 text-center text-[11px] uppercase tracking-wider text-muted-foreground font-medium">{d}</th>
-                ))}
-                <th className="px-4 py-2.5 text-right text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Promedio</th>
+                <th className="px-4 py-2.5 text-right text-[11px] uppercase tracking-wider text-muted-foreground font-medium">OEE</th>
+                <th className="px-4 py-2.5 text-right text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Piezas</th>
+                <th className="px-4 py-2.5 text-right text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Paro (min)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {weeklyOEE.map(row => (
-                <tr key={row.machine} className="hover:bg-muted/20 transition-colors">
-                  <td className="px-4 py-3 text-xs font-semibold text-foreground">{row.machine}</td>
-                  {dias.map(d => {
-                    const v = row[d];
-                    const color = v === 0 ? "#6B7A8D" : v >= 85 ? "#22C55E" : v >= 65 ? "#F59E0B" : "#EF4444";
-                    return (
-                      <td key={d} className="px-4 py-3 text-center font-mono text-xs" style={{ color }}>
-                        {v === 0 ? "—" : `${v}%`}
-                      </td>
-                    );
-                  })}
-                  <td className="px-4 py-3 text-right">
-                    <span className="font-mono text-xs font-bold"
-                      style={{ color: row.prom >= 85 ? "#22C55E" : row.prom >= 65 ? "#F59E0B" : "#EF4444" }}>
-                      {row.prom.toFixed(1)}%
-                    </span>
-                  </td>
+              {machines.map(machine => (
+                <tr key={machine.id} className="hover:bg-muted/20 transition-colors">
+                  <td className="px-4 py-3 text-xs font-semibold text-foreground">{machine.name}</td>
+                  <td className="px-4 py-3 text-right font-mono text-xs">{machine.oee === null ? "—" : `${formatMetric(machine.oee, 1)}%`}</td>
+                  <td className="px-4 py-3 text-right font-mono text-xs">{formatMetric(machine.partsProduced)}</td>
+                  <td className="px-4 py-3 text-right font-mono text-xs">{formatMetric(machine.downtime)}</td>
                 </tr>
               ))}
             </tbody>
@@ -907,35 +835,35 @@ function ReportsView({ machines }: { machines: Machine[] }) {
       {/* Parte del reporte */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-card border border-border rounded p-5">
-          <h3 className="text-sm font-semibold text-foreground mb-4">Tiempo Muerto por Máquina</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4">Tiempo muerto actual</h3>
           <div className="space-y-3">
             {machines.map(m => (
               <div key={m.id} className="flex items-center gap-3">
                 <span className="text-xs text-foreground w-32 flex-shrink-0">{m.name}</span>
                 <div className="flex-1 bg-muted/40 rounded-full h-2 overflow-hidden">
                   <div className="h-full rounded-full transition-all"
-                    style={{ width: `${Math.min((m.downtime / 440) * 100, 100)}%`, background: m.downtime > 120 ? "#EF4444" : m.downtime > 60 ? "#F59E0B" : "#22C55E" }} />
+                    style={{ width: `${Math.min(((m.downtime ?? 0) / maxDowntime) * 100, 100)}%`, background: (m.downtime ?? 0) > 0 ? "#F59E0B" : "#6B7A8D" }} />
                 </div>
-                <span className="font-mono text-xs text-muted-foreground w-16 text-right">{m.downtime} min</span>
+                  <span className="font-mono text-xs text-muted-foreground w-16 text-right">{formatMetric(m.downtime)} min</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded p-5">
-          <h3 className="text-sm font-semibold text-foreground mb-4">Tiempo Muerto por Causa</h3>
-          <div className="space-y-2">
+                  <div className="bg-card border border-border rounded p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-4">Paro por Causa </h3>
+          {downtimeByReason.length > 0 ? <div className="space-y-2">
             {downtimeByReason.map(d => (
               <div key={d.name} className="flex items-center gap-3">
                 <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: d.color }} />
                 <span className="text-xs text-muted-foreground flex-1">{d.name}</span>
                 <div className="w-24 bg-muted/40 rounded-full h-1.5 overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${(d.value / 125) * 100}%`, background: d.color }} />
+                  <div className="h-full rounded-full" style={{ width: `${(d.value / maxDowntimeReason) * 100}%`, background: d.color }} />
                 </div>
                 <span className="font-mono text-xs text-foreground w-12 text-right">{d.value} min</span>
               </div>
             ))}
-          </div>
+          </div> : <p className="text-sm text-muted-foreground">La tabla no contiene registros de paros por causa.</p>}
         </div>
       </div>
     </div>
@@ -1026,8 +954,8 @@ function AlertsView({ alerts, onAcknowledge }: { alerts: Alert[]; onAcknowledge:
 }
 
 /* ─────────────── Sidebar del lado derecho ─────────────── */
-function Sidebar({ view, setView, alertCount }: {
-  view: View; setView: (v: View) => void; alertCount: number;
+function Sidebar({ view, setView, alertCount, databaseConnected }: {
+  view: View; setView: (v: View) => void; alertCount: number; databaseConnected: boolean;
 }) {
   const navItems: { id: View; label: string; Icon: any }[] = [
 
@@ -1068,13 +996,12 @@ function Sidebar({ view, setView, alertCount }: {
       {/* Footer */}
       <div className="px-4 py-4 border-t border-sidebar-border">
         <div className="flex items-center gap-2 mb-3">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-[11px] font-mono text-muted-foreground">Red industrial OK</span>
+          <span className={`w-1.5 h-1.5 rounded-full ${databaseConnected ? "bg-green-400" : "bg-amber-400"}`} />
+          <span className="text-[11px] font-mono text-muted-foreground">{databaseConnected ? "SQL Server conectado" : "SQL Server sin conexión"}</span>
         </div>
         <div className="font-mono text-[10px] text-muted-foreground space-y-0.5">
-          <div>Servidor: 192.168.1.100</div>
-          <div>Protocolo: Modbus TCP</div>
-          <div>Intervalo: 500 ms</div>
+          <div>Fuente: base de datos</div>
+          <div>Actualización: 15 s</div>
         </div>
       </div>
     </aside>
@@ -1098,8 +1025,10 @@ function Sidebar({ view, setView, alertCount }: {
   sensores: string;
   descripcion: string;
 }
-function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => void }) {
+function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promise<void> }) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [errorGuardar, setErrorGuardar] = useState<string | null>(null);
 
   const [maquina, setMaquina] = useState<Maquina>({
     nombre: "",
@@ -1128,10 +1057,12 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => void }
   }));
 };
 
-  const guardarMaquina = (
+  const guardarMaquina = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
+    setGuardando(true);
+    setErrorGuardar(null);
 
     const tipoNormalizado: Machine["type"] =
       maquina.tipo === "Inyección"
@@ -1144,9 +1075,14 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => void }
 
     const nuevaMaquina: Machine = {
       id: maquina.numero.trim() || `MAQ-${Date.now().toString().slice(-4)}`,
+      number: maquina.numero.trim(),
       name: maquina.nombre.trim(),
+      brand: maquina.marca.trim(),
+      model: maquina.modelo.trim(),
+      area: maquina.area.trim(),
+      location: maquina.ubicacion.trim(),
       type: tipoNormalizado,
-      adam6050: maquina.ip.trim() || "Sin IP",
+      adamAddress: maquina.ip.trim(),
       status:
         maquina.estado === "Detenida"
           ? "stopped"
@@ -1155,40 +1091,61 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => void }
             : maquina.estado === "Fuera de servicio"
               ? "stopped"
               : "running",
-      oee: 0,
-      availability: 0,
-      performance: 0,
-      quality: 0,
-      uptime: 0,
-      downtime: 0,
-      partsProduced: 0,
-      partsTarget: 0,
-      defects: 0,
+      oee: null,
+      availability: null,
+      performance: null,
+      quality: null,
+      uptime: null,
+      downtime: null,
+      partsProduced: null,
+      partsTarget: null,
+      defects: null,
       lastEvent: "Máquina registrada",
       lastEventTime: new Date().toLocaleTimeString("es-MX"),
-      di: makeDI(Array(12).fill({ state: false })),
-      do_: makeDO(Array(6).fill({ state: false })),
+      di: [],
+      do_: [],
       downtimeLog: [],
+      raw: {
+        numero: maquina.numero.trim(),
+        nombre: maquina.nombre.trim(),
+        tipo: maquina.tipo,
+        marca: maquina.marca,
+        modelo: maquina.modelo,
+        area: maquina.area,
+        ubicacion: maquina.ubicacion,
+        estado: maquina.estado,
+        comunicacion: maquina.comunicacion,
+        ip: maquina.ip,
+        puerto: maquina.puerto,
+        sensores: maquina.sensores,
+        descripcion: maquina.descripcion,
+      },
     };
 
-    onAddMachine(nuevaMaquina);
-    setMaquina({
-      nombre: "",
-      numero: "",
-      tipo: "",
-      otroTipo: "",
-      marca: "",
-      modelo: "",
-      area: "",
-      ubicacion: "",
-      estado: "Operativa",
-      comunicacion: "",
-      ip: "",
-      puerto: "",
-      sensores: "",
-      descripcion: "",
-    });
-    setMostrarFormulario(false);
+    try {
+      await onAddMachine(nuevaMaquina);
+      setMaquina({
+        nombre: "",
+        numero: "",
+        tipo: "",
+        otroTipo: "",
+        marca: "",
+        modelo: "",
+        area: "",
+        ubicacion: "",
+        estado: "Operativa",
+        comunicacion: "",
+        ip: "",
+        puerto: "",
+        sensores: "",
+        descripcion: "",
+      });
+      setMostrarFormulario(false);
+    } catch (error) {
+      setErrorGuardar(error instanceof Error ? error.message : "No se pudo guardar la máquina.");
+    } finally {
+      setGuardando(false);
+    }
   };
 
   return (
@@ -1478,6 +1435,7 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => void }
               </section>
 
               {/* BOTONES */}
+              {errorGuardar && <p role="alert" className="text-sm text-red-400">{errorGuardar}</p>}
               <div className="flex justify-end gap-3 pt-4 border-t">
 
                 <button
@@ -1490,9 +1448,10 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => void }
 
                 <button
                   type="submit"
+                  disabled={guardando}
                   className="px-4 py-2 text-sm rounded-lg bg-yellow-600 text-white hover:bg-pink-700"
                 >
-                  Guardar Máquina
+                  {guardando ? "Guardando..." : "Guardar Máquina"}
                 </button>
 
               </div>
@@ -1508,9 +1467,49 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => void }
 /* ─────────────── App ─────────────── */
 export default function App() {
   const [view, setView] = useState<View>("dashboard");
-  const [machines, setMachines] = useState<Machine[]>(MACHINES);
-  const [alerts, setAlerts] = useState<Alert[]>(INITIAL_ALERTS);
+  const [machines, setMachines] = useState<Machine[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [selectedMachine, setSelectedMachine] = useState<Machine | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadMachines = async () => {
+      try {
+        const response = await fetch("http://localhost:3001/maquinas");
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || `Error HTTP ${response.status}`);
+        if (!Array.isArray(body)) throw new Error("La API no devolvió una lista de máquinas.");
+
+        const rows = body.filter((row): row is Record<string, unknown> =>
+          row !== null && typeof row === "object" && !Array.isArray(row)
+        );
+        const nextMachines = rows.map(mapMachine);
+        if (active) {
+          setMachines(nextMachines);
+          setSelectedMachine(current => current ? nextMachines.find(machine => machine.id === current.id) ?? null : null);
+          setDataError(null);
+        }
+      } catch (error) {
+        if (active) {
+          setMachines([]);
+          setSelectedMachine(null);
+          setDataError(error instanceof Error ? error.message : "No se pudieron cargar las máquinas.");
+        }
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    };
+
+    void loadMachines();
+    const refresh = window.setInterval(loadMachines, 15000);
+    return () => {
+      active = false;
+      window.clearInterval(refresh);
+    };
+  }, []);
 
   const handleSelectMachine = useCallback((m: Machine) => {
     setSelectedMachine(m);
@@ -1521,26 +1520,34 @@ export default function App() {
     setAlerts(prev => prev.map(a => a.id === id ? { ...a, acknowledged: true } : a));
   }, []);
 
-  const handleAddMachine = useCallback((machine: Machine) => {
-    setMachines(prev => [...prev, machine]);
+  const handleAddMachine = useCallback(async (machine: Machine) => {
+    const response = await fetch("http://localhost:3001/maquinas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(machine.raw),
+    });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error || `Error HTTP ${response.status}`);
+
+    const savedMachine = mapMachine(body, 0);
+    setMachines(previous => [...previous.filter(existing => existing.id !== savedMachine.id), savedMachine]);
   }, []);
 
   const unackedCount = alerts.filter(a => !a.acknowledged).length;
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
-      <Sidebar view={view} setView={setView} alertCount={unackedCount} />
+      <Sidebar view={view} setView={setView} alertCount={unackedCount} databaseConnected={!isLoading && !dataError} />
 
       <main className="flex-1 overflow-y-auto">
+        {isLoading && <p className="px-6 pt-4 text-sm text-muted-foreground">Cargando máquinas desde SQL Server...</p>}
+        {dataError && <div role="alert" className="m-6 mb-0 rounded border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">No se pudieron cargar datos de SQL Server: {dataError}</div>}
+        {!isLoading && !dataError && machines.length === 0 && <p className="px-6 pt-4 text-sm text-muted-foreground">La consulta se realizó correctamente, pero la tabla no devolvió máquinas.</p>}
         {view === "dashboard" && (
           <DashboardView machines={machines} alerts={alerts} onSelectMachine={handleSelectMachine} />
         )}
         {view === "machines" && (
-          <MachinesView
-            machines={machines}
-            onSelectMachine={handleSelectMachine}
-            onAddMachine={handleAddMachine}
-          />
+          <MachinesView machines={machines} onSelectMachine={handleSelectMachine} onAddMachine={handleAddMachine} />
         )}
         {view === "machine-detail" && selectedMachine && (
           <MachineDetailView machine={selectedMachine} onBack={() => setView("machines")} />
