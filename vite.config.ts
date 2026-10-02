@@ -16,6 +16,7 @@ function figmaAssetResolver() {
 }
 
 export default defineConfig({
+  base: process.env.GITHUB_PAGES === 'true' ? '/proyectoM/' : '/',
   plugins: [
     figmaAssetResolver(),
     react(),
