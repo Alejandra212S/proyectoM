@@ -356,15 +356,15 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-6 sm:p-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-xl font-bold text-foreground">Panel de Control</h1>
           <p className="text-sm text-muted-foreground capitalize">{fmtDate(now)}</p>
         </div>
         <div className="text-right">
-          <div className="font-mono text-2xl font-bold text-foreground tracking-widest">{fmtTime(now)}</div>
+          <div className="font-mono text-xl font-bold text-foreground sm:text-2xl">{fmtTime(now)}</div>
           <div className="flex items-center gap-1.5 justify-end mt-1">
             <span className="inline-flex h-2 w-2 rounded-full bg-green-400 animate-pulse" />
             <span className="text-[11px] text-muted-foreground font-mono">{machines.length} máquinas recibidas</span>
@@ -388,9 +388,9 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
 
       {/* Parte de estado de la maquinaria */}
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="mb-3 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">Estado de Maquinaria</h2>
-          <div className="flex items-center gap-3 text-[11px] font-mono text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-mono text-muted-foreground sm:text-[11px]">
             {(["running","stopped","alarm","maintenance"] as MachineStatus[]).map(s => (
               <span key={s} className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full" style={{ background: STATUS_COLOR[s] }} />
@@ -491,7 +491,7 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
   const oeeColor = oee >= 85 ? "#22C55E" : oee >= 65 ? "#F59E0B" : oee > 0 ? "#EF4444" : "#6B7A8D";
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-6 sm:p-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <button onClick={onBack}
@@ -677,7 +677,7 @@ function MachinesView({ machines, onSelectMachine, onAddMachine }: {
   const [filter, setFilter] = useState<Machine["type"] | "all">("all");
   const filtered = filter === "all" ? machines : machines.filter(m => m.type === filter);
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 space-y-5 sm:p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">Maquinaria</h1>
          <h2 className="text-xl font-bold text-foreground "></h2>
@@ -772,7 +772,7 @@ function ReportsView({ machines }: { machines: Machine[] }) {
   const maxDowntimeReason = Math.max(...downtimeByReason.map(entry => entry.value), 1);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-6 sm:p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">Reportes de Producción</h1>
       </div>
@@ -921,7 +921,7 @@ function AlertsView({ alerts, onAcknowledge }: { alerts: Alert[]; onAcknowledge:
   };
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 space-y-5 sm:p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">Alarmas y Eventos</h1>
         <span className="font-mono text-xs text-muted-foreground">{unacked.length} sin atender</span>
@@ -944,7 +944,7 @@ function AlertsView({ alerts, onAcknowledge }: { alerts: Alert[]; onAcknowledge:
       </div>
 
       {/*ALARMAS, ADVERTEBCIAS O INFORMATIVOS DE LAS MAQUINAS*/}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
         {[
           { l: "Alarmas hoy", v: alerts.filter(a => a.type === "alarm").length, color: "#EF4444" },
           { l: "Advertencias", v: alerts.filter(a => a.type === "warning").length, color: "#F59E0B" },
@@ -957,6 +957,28 @@ function AlertsView({ alerts, onAcknowledge }: { alerts: Alert[]; onAcknowledge:
         ))}
       </div>
     </div>
+  );
+}
+
+function MenshenLogo({ variant }: { variant: "desktop" | "mobile" }) {
+  const titleId = `menshen-logo-title-${variant}`;
+  const filterId = `menshen-logo-filter-${variant}`;
+
+  return (
+    <svg role="img" aria-labelledby={titleId} viewBox="0 0 180 180" className={variant === "desktop" ? "h-12 w-12" : "h-9 w-9"}>
+      <title id={titleId}>Logo MENSHEN</title>
+      <defs>
+        <filter id={filterId} colorInterpolationFilters="sRGB">
+          <feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 -0.34016 -1.14432 -0.11552 0 1.6" />
+        </filter>
+      </defs>
+      <image
+        href="https://feedingfreely.eu/wp-content/uploads/2021/04/menshen-packaging-usa-squarelogo-1541588341734.png"
+        width="180"
+        height="180"
+        filter={`url(#${filterId})`}
+      />
+    </svg>
   );
 }
 
@@ -973,27 +995,11 @@ function Sidebar({ view, setView, alertCount, databaseConnected }: {
   ];
 
   return (
-    <aside className="w-56 flex-shrink-0 bg-sidebar border-r border-sidebar-border flex flex-col">
+    <>
+    <aside className="hidden w-56 flex-shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
       {/* Logo */}
       <div className="flex min-h-20 items-center justify-center border-b border-sidebar-border px-5">
-        <svg role="img" aria-labelledby="menshen-logo-title" viewBox="0 0 180 180" className="h-12 w-12">
-          <title id="menshen-logo-title">Logo MENSHEN</title>
-      
-          <defs>
-            <filter id="menshen-logo-transparent-background" colorInterpolationFilters="sRGB">
-              <feColorMatrix
-                type="matrix"
-                values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 -0.34016 -1.14432 -0.11552 0 1.6"
-              />
-            </filter>
-          </defs>
-          <image
-            href="https://feedingfreely.eu/wp-content/uploads/2021/04/menshen-packaging-usa-squarelogo-1541588341734.png"
-            width="180"
-            height="180"
-            filter="url(#menshen-logo-transparent-background)"
-          />
-        </svg>
+        <MenshenLogo variant="desktop" />
       </div>
 
       {/* Nav */}
@@ -1030,6 +1036,31 @@ function Sidebar({ view, setView, alertCount, databaseConnected }: {
         </div>
       </div>
     </aside>
+    <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 md:hidden">
+      <MenshenLogo variant="mobile" />
+      <div className="flex min-w-0 items-center gap-2" title={databaseConnected ? "SQL Server conectado" : "SQL Server sin conexión"}>
+        <span className={`h-2 w-2 flex-shrink-0 rounded-full ${databaseConnected ? "bg-green-400" : "bg-amber-400"}`} />
+        <span className="max-w-48 truncate text-xs text-muted-foreground">{databaseConnected ? "SQL Server conectado" : "SQL sin conexión"}</span>
+      </div>
+    </header>
+    <nav aria-label="Navegación principal" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-sidebar-border bg-sidebar px-1 pb-[env(safe-area-inset-bottom)] md:hidden">
+      {navItems.map(({ id, label, Icon }) => {
+        const active = view === id || (view === "machine-detail" && id === "machines");
+        return (
+          <button
+            key={id}
+            onClick={() => setView(id)}
+            aria-current={active ? "page" : undefined}
+            className={`relative flex min-h-16 flex-col items-center justify-center gap-1 ${active ? "text-primary" : "text-muted-foreground"}`}
+          >
+            <Icon size={18} />
+            <span className="text-[10px]">{label}</span>
+            {id === "alerts" && alertCount > 0 && <span className="absolute right-1/4 top-1 h-4 min-w-4 rounded-full bg-red-500 px-1 text-[10px] leading-4 text-white">{alertCount}</span>}
+          </button>
+        );
+      })}
+    </nav>
+    </>
   );
 }
 
@@ -1215,7 +1246,7 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
             </div>
 
             {/* FORMULARIO */}
-            <form onSubmit={guardarMaquina} className="p-6 space-y-6">
+            <form onSubmit={guardarMaquina} className="p-4 space-y-6 sm:p-6">
 
               {/* INFORMACIÓN GENERAL */}
               <section>
@@ -1561,12 +1592,12 @@ export default function App() {
   const unackedCount = alerts.filter(a => !a.acknowledged).length;
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+    <div className="flex min-h-dvh w-full overflow-x-hidden bg-background text-foreground md:h-dvh md:overflow-hidden" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
       <Sidebar view={view} setView={setView} alertCount={unackedCount} databaseConnected={!isLoading && !dataError} />
 
-      <main className="flex-1 overflow-y-auto">
+      <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto pt-14 pb-20 md:pt-0 md:pb-0">
         {isLoading && <p className="px-6 pt-4 text-sm text-muted-foreground">Cargando máquinas desde SQL Server...</p>}
-        {dataError && <div role="alert" className="m-6 mb-0 rounded border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">No se pudieron cargar datos de SQL Server: {dataError}</div>}
+        {dataError && <div role="alert" className="mx-4 mt-4 break-words rounded border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300 sm:m-6 sm:mb-0">No se pudieron cargar datos de SQL Server: {dataError}</div>}
         {!isLoading && !dataError && machines.length === 0 && <p className="px-6 pt-4 text-sm text-muted-foreground">La consulta se realizó correctamente, pero la tabla no devolvió máquinas.</p>}
         {view === "dashboard" && (
           <DashboardView machines={machines} alerts={alerts} onSelectMachine={handleSelectMachine} />

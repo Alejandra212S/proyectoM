@@ -1,3 +1,5 @@
+//conexión de base de datos sql server para poder levantarla desde el backend con npm run dev y poder consumir la API desde el Frontend
+
 import { defineConfig } from 'vite'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
