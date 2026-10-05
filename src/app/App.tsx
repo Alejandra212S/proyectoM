@@ -30,7 +30,7 @@ interface Machine {
   downtimeLog: { time: string; duration: number; reason: string }[];
   raw: Record<string, unknown>;
 }
-
+//Interfaz para el apartado de alertas //
 interface Alert {
   id: string; machineId: string; machineName: string;
   type: "alarm" | "warning" | "info";
@@ -414,6 +414,9 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
             <h3 className="text-sm font-semibold text-foreground">Producción por Hora — Hoy</h3>
             <span className="text-[11px] font-mono text-muted-foreground">pzs/hr promedio</span>
           </div>
+
+          {/*Si la base de datos no esta conectada de manera correcta se muetra el siguiente mensaje */}
+
           <p className="flex h-[180px] items-center justify-center text-sm text-muted-foreground">
             La tabla Maquinas no contiene historial de producción por hora.
           </p>
@@ -559,7 +562,7 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
         </p>
       </div>
 
-      {/* Tabs */}
+      {/* Tabla de registro de paros */}
       <div className="bg-card border border-border rounded">
         <div className="flex border-b border-border">
           {([["io", "I/O Digital"], ["downtime", "Registro de Paros"], ["history", "OEE Semanal"]] as const).map(([k, l]) => (
@@ -571,6 +574,8 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
             </button>
           ))}
         </div>
+
+        {/* Parte de entradas y salidas digitales del modulo ADAM 5060*/}
 
         {tab === "io" && (
           <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -618,7 +623,7 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
             </div>
           </div>
         )}
-
+        {/* DATOS DE TIEMPO, DURACIÓN DE LOS PAROS Y LA CAUSA O RAZON POR LA QUE LA MAQUINA PAROS*/}
         {tab === "downtime" && (
           <div className="p-5">
             <table className="w-full text-sm">
@@ -691,6 +696,7 @@ function MachinesView({ machines, onSelectMachine, onAddMachine }: {
          
           
       
+{/*ALERTA DE QUE NO HAY MAQUINAS REGISTRADAS SIN LA BASE DE DATOS*/}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {filtered.map(m => (
@@ -804,6 +810,7 @@ function ReportsView({ machines }: { machines: Machine[] }) {
         </ResponsiveContainer> : <p className="py-8 text-center text-sm text-muted-foreground">La tabla no contiene valores de OEE.</p>}
       </div>
 
+{/* Datos actuales que se tienen de las maquinas dentro de la base de datos */}
       <div className="bg-card border border-border rounded overflow-hidden">
         <div className="px-5 py-3 border-b border-border">
           <h3 className="text-sm font-semibold text-foreground">Datos actuales por máquina</h3>
@@ -936,7 +943,7 @@ function AlertsView({ alerts, onAcknowledge }: { alerts: Alert[]; onAcknowledge:
         </div>
       </div>
 
-      {/* Stats */}
+      {/*ALARMAS, ADVERTEBCIAS O INFORMATIVOS DE LAS MAQUINAS*/}
       <div className="grid grid-cols-3 gap-4">
         {[
           { l: "Alarmas hoy", v: alerts.filter(a => a.type === "alarm").length, color: "#EF4444" },
@@ -971,7 +978,7 @@ function Sidebar({ view, setView, alertCount, databaseConnected }: {
       <div className="flex min-h-20 items-center justify-center border-b border-sidebar-border px-5">
         <svg role="img" aria-labelledby="menshen-logo-title" viewBox="0 0 180 180" className="h-12 w-12">
           <title id="menshen-logo-title">Logo MENSHEN</title>
-          <h2>Logo MENSHEN</h2>
+      
           <defs>
             <filter id="menshen-logo-transparent-background" colorInterpolationFilters="sRGB">
               <feColorMatrix
