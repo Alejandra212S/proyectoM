@@ -959,7 +959,6 @@ function Sidebar({ view, setView, alertCount, databaseConnected }: {
 }) {
   const navItems: { id: View; label: string; Icon: any }[] = [
 
-    { id:"dashboard", label: "Logo", Icon: Home },
     { id: "dashboard", label: "Panel", Icon: Home },
     { id: "machines", label: "Maquinaria", Icon: Cpu },
     { id: "reports", label: "Reportes", Icon: BarChart2 },
@@ -969,7 +968,26 @@ function Sidebar({ view, setView, alertCount, databaseConnected }: {
   return (
     <aside className="w-56 flex-shrink-0 bg-sidebar border-r border-sidebar-border flex flex-col">
       {/* Logo */}
-
+      <div className="flex min-h-20 items-center justify-center border-b border-sidebar-border px-5">
+        <svg role="img" aria-labelledby="menshen-logo-title" viewBox="0 0 180 180" className="h-12 w-12">
+          <title id="menshen-logo-title">Logo MENSHEN</title>
+          <h2>Logo MENSHEN</h2>
+          <defs>
+            <filter id="menshen-logo-transparent-background" colorInterpolationFilters="sRGB">
+              <feColorMatrix
+                type="matrix"
+                values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 -0.34016 -1.14432 -0.11552 0 1.6"
+              />
+            </filter>
+          </defs>
+          <image
+            href="https://feedingfreely.eu/wp-content/uploads/2021/04/menshen-packaging-usa-squarelogo-1541588341734.png"
+            width="180"
+            height="180"
+            filter="url(#menshen-logo-transparent-background)"
+          />
+        </svg>
+      </div>
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5">
