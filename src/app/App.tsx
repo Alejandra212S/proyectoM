@@ -9,7 +9,7 @@ import {
   Bell, FileText, Home, Wifi, Power, Package, Wrench,
   CheckCircle, XCircle, AlertCircle, RefreshCw, ChevronRight,
   TrendingUp, Download, Filter, Calendar, X, ArrowUpRight, ArrowDownRight,
-  Radio, Zap, Gauge, Eye,
+  Radio, Zap, Gauge, Eye, SunMedium, MoonStar,
 } from "lucide-react";
 
 /* ─────────────── Tipos de estados de las maquinas  ─────────────── */
@@ -618,7 +618,7 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
                 ))}
               </div>
               <div className="mt-4 p-3 bg-muted/30 rounded border border-border">
-                <div className="text-[10px] text-muted-foreground mb-1 font-mono uppercase tracking-wider">Controlador ADAM-5000/TCP</div>
+                <div className="text-[10px] text-muted-foreground mb-1 font-mono uppercase tracking-wider">Controlador ADAM-5060/TCP</div>
                 <div className="font-mono text-xs text-foreground">{machine.adamAddress || "IP sin configurar"}</div>
                 <div className="flex items-center gap-1.5 mt-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
@@ -990,9 +990,9 @@ function MenshenLogo({ variant }: { variant: "desktop" | "mobile" }) {
   );
 }
 
-/* ─────────────── Sidebar del lado derecho ─────────────── */
-function Sidebar({ view, setView, alertCount, databaseConnected }: {
-  view: View; setView: (v: View) => void; alertCount: number; databaseConnected: boolean;
+/* ─────────────── Sidebar en donde se muetran los reportes, alarmas, maquinaria ─────────────── */
+function Sidebar({ view, setView, alertCount, databaseConnected, theme, onToggleTheme }: {
+  view: View; setView: (v: View) => void; alertCount: number; databaseConnected: boolean; theme: "dark" | "light"; onToggleTheme: () => void;
 }) {
   const navItems: { id: View; label: string; Icon: any }[] = [
 
@@ -1032,23 +1032,41 @@ function Sidebar({ view, setView, alertCount, databaseConnected }: {
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="px-4 py-4 border-t border-sidebar-border">
+      {/* Footer en donde se muestra "sql Server conectado" */}
+      <div className="px-4 py-4 border-t border-sidebar-border space-y-3">
+        <button
+          type="button"
+          onClick={onToggleTheme}
+          className="flex w-full items-center justify-between gap-2 rounded border border-border bg-secondary/60 px-3 py-2 text-left text-[11px] text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+        >
+          <span className="flex items-center gap-2">
+            {theme === "dark" ? <SunMedium size={14} /> : <MoonStar size={14} />}
+            {theme === "dark" ? "Tema claro" : "Tema oscuro"}
+          </span>
+        </button>
+
         <div className="flex items-center gap-2 mb-3">
           <span className={`w-1.5 h-1.5 rounded-full ${databaseConnected ? "bg-green-400" : "bg-amber-400"}`} />
           <span className="text-[11px] font-mono text-muted-foreground">{databaseConnected ? "SQL Server conectado" : "SQL Server sin conexión"}</span>
-        </div>
-        <div className="font-mono text-[10px] text-muted-foreground space-y-0.5">
-          <div>Fuente: base de datos</div>
-          <div>Actualización: 15 s</div>
         </div>
       </div>
     </aside>
     <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 md:hidden">
       <MenshenLogo variant="mobile" />
-      <div className="flex min-w-0 items-center gap-2" title={databaseConnected ? "SQL Server conectado" : "SQL Server sin conexión"}>
-        <span className={`h-2 w-2 flex-shrink-0 rounded-full ${databaseConnected ? "bg-green-400" : "bg-amber-400"}`} />
-        <span className="max-w-48 truncate text-xs text-muted-foreground">{databaseConnected ? "SQL Server conectado" : "SQL sin conexión"}</span>
+      <div className="flex min-w-0 items-center gap-2">
+        <button
+          type="button"
+          onClick={onToggleTheme}
+          className="flex h-8 w-8 items-center justify-center rounded border border-border bg-secondary/60 text-muted-foreground transition hover:text-foreground"
+          aria-label={theme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
+        >
+          {theme === "dark" ? <SunMedium size={15} /> : <MoonStar size={15} />}
+        </button>
+        {/*Base de datos conectada o sin conexión*/}
+        <div className="flex min-w-0 items-center gap-2" title={databaseConnected ? "SQL Server conectado" : "SQL Server sin conexión"}>
+          <span className={`h-2 w-2 flex-shrink-0 rounded-full ${databaseConnected ? "bg-green-400" : "bg-amber-400"}`} />
+          <span className="max-w-48 truncate text-xs text-muted-foreground">{databaseConnected ? "SQL Server conectado" : "SQL sin conexión"}</span>
+        </div>
       </div>
     </header>
     <nav aria-label="Navegación principal" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-sidebar-border bg-sidebar px-1 pb-[env(safe-area-inset-bottom)] md:hidden">
@@ -1072,7 +1090,7 @@ function Sidebar({ view, setView, alertCount, databaseConnected }: {
   );
 }
 
-
+{/*Función para mostrar la ventana para agregar una nueva maquina y los campos que se deben de llenar para poder registrar la maquina en la base de datos*/}
  interface Maquina {
   nombre: string;
   numero: string;
@@ -1089,6 +1107,7 @@ function Sidebar({ view, setView, alertCount, databaseConnected }: {
   sensores: string;
   descripcion: string;
 }
+
 function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promise<void> }) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -1120,7 +1139,7 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
     [name]: value,
   }));
 };
-
+{/*Función para agregar una maquina*/}
   const guardarMaquina = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
@@ -1231,10 +1250,11 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
             {/* ENCABEZADO */}
             <div className="flex items-center justify-between border-b border-slate-700 px-6 py-4">
               <div>
+                {/*Interfaz que se despliega para llenar el formulario de la maquina, agregar u registrar información que se y¿quiere registrar*/}
                 <h2 className="text-xl font-bold text-white">Agregar Máquina</h2>
                 <p className="mt-1 text-sm text-slate-300">Registra la información de la maquinaria</p>
               </div>
-
+               {/*se crea div para cancelar la función de formulario y del guardado de la información*/}
               <button
                 type="button"
                 onClick={() => setMostrarFormulario(false)}
@@ -1278,13 +1298,13 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
 
                   <div>
                     <label className="text-sm text-slate-200">Tipo de máquina</label>
+                     {/*Opciones predeterminadas para agregar un maquina*/}
                     <select
                       name="tipo"
                       value={maquina.tipo}
                       onChange={handleChange}
                       required
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-orange-500 focus:outline-none"
-                    >
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-orange-500 focus:outline-none" >
                       <option value="">Seleccionar...</option>
                       <option value="Inyección">Inyección</option>
                       <option value="Ensamble">Ensamble</option>
@@ -1338,7 +1358,7 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
                 </div>
               </section>
 
-              {/* UBICACIÓN */}
+              {/* UBICACIÓN DE LA MAQUINA */}
               <section>
                 <h3 className="mb-4 text-sm font-semibold text-slate-200">Ubicación y estado</h3>
 
@@ -1356,8 +1376,6 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
                       <option value="Ensamble">Ensamble</option>
                       <option value="Inyección">Inyección</option>
                       <option value="Mantenimiento">Mantenimiento</option>
-                      <option value="Calidad">Calidad</option>
-                      <option value="Almacén">Almacén</option>
                       <option value="Otros">Otros</option>
                     </select>
                   </div>
@@ -1369,19 +1387,18 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
                       name="ubicacion"
                       value={maquina.ubicacion}
                       onChange={handleChange}
-                      placeholder="Ej. Línea 2"
+                      placeholder="Ej. Línea 3"
                       className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none"
                     />
                   </div>
-
+                  {/*Estado de maquinaria */}
                   <div>
                     <label className="text-sm text-slate-200">Estado</label>
                     <select
                       name="estado"
                       value={maquina.estado}
                       onChange={handleChange}
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-orange-500 focus:outline-none"
-                    >
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-orange-500 focus:outline-none">
                       <option value="Operativa">Operativa</option>
                       <option value="Detenida">Detenida</option>
                       <option value="Mantenimiento">En mantenimiento</option>
@@ -1391,7 +1408,7 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
                 </div>
               </section>
 
-              {/* CONECTIVIDAD */}
+              {/* CONECTIVIDAD DE LA MAQUINA HACIA EL MODULO ADAM 5060 */}
               <section className="space-y-4">
                 <div>
                   <label className="text-sm text-slate-200">Comunicación</label>
@@ -1410,7 +1427,7 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
                 </div>
               </section>
 
-              {/* DESCRIPCIÓN */}
+              {/* DESCRIPCIÓN DE CADA MAQUINA QUE SE QUIERE DAR DE ALTA */}
               <section>
                 <label className="text-sm text-slate-200">Descripción</label>
                 <textarea
@@ -1423,7 +1440,7 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
                 />
               </section>
 
-              {/* BOTONES */}
+              {/* BOTONES DE CANCELAR */}
               {errorGuardar && <p role="alert" className="text-sm text-red-400">{errorGuardar}</p>}
               <div className="flex justify-end gap-3 border-t border-slate-700 pt-4">
                 <button
@@ -1453,6 +1470,7 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
 /* ─────────────── App y función localmente ─────────────── */
 export default function App() {
   const [view, setView] = useState<View>("dashboard");
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [machines, setMachines] = useState<Machine[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [selectedMachine, setSelectedMachine] = useState<Machine | null>(null);
@@ -1522,8 +1540,15 @@ export default function App() {
   const unackedCount = alerts.filter(a => !a.acknowledged).length;
 
   return (
-    <div className="flex min-h-dvh w-full overflow-x-hidden bg-background text-foreground md:h-dvh md:overflow-hidden" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
-      <Sidebar view={view} setView={setView} alertCount={unackedCount} databaseConnected={!isLoading && !dataError} />
+    <div className={`theme-${theme} flex min-h-dvh w-full overflow-x-hidden bg-background text-foreground md:h-dvh md:overflow-hidden`} style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+      <Sidebar
+        view={view}
+        setView={setView}
+        alertCount={unackedCount}
+        databaseConnected={!isLoading && !dataError}
+        theme={theme}
+        onToggleTheme={() => setTheme(current => current === "dark" ? "light" : "dark")}
+      />
 
       <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto pt-14 pb-20 md:pt-0 md:pb-0">
         {isLoading && <p className="px-6 pt-4 text-sm text-muted-foreground">Cargando máquinas desde SQL Server...</p>}

@@ -41,6 +41,80 @@
   --sidebar-ring: #FF5C00;
 }
 
+.theme-dark {
+  --background: #080D16;
+  --foreground: #D8E0EA;
+  --card: #0F1724;
+  --card-foreground: #D8E0EA;
+  --popover: #0F1724;
+  --popover-foreground: #D8E0EA;
+  --primary: #FF5C00;
+  --primary-foreground: #ffffff;
+  --secondary: #1A2338;
+  --secondary-foreground: #D8E0EA;
+  --muted: #141E2E;
+  --muted-foreground: #6B7A8D;
+  --accent: #FF5C00;
+  --accent-foreground: #ffffff;
+  --destructive: #EF4444;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.07);
+  --input: #1A2338;
+  --ring: #FF5C00;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --chart-1: #FF5C00;
+  --chart-2: #22C55E;
+  --chart-3: #3B82F6;
+  --chart-4: #F59E0B;
+  --chart-5: #A855F7;
+  --sidebar: #0B1120;
+  --sidebar-foreground: #D8E0EA;
+  --sidebar-primary: #FF5C00;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1A2338;
+  --sidebar-accent-foreground: #D8E0EA;
+  --sidebar-border: rgba(255, 255, 255, 0.07);
+  --sidebar-ring: #FF5C00;
+}
+
+.theme-light {
+  --background: #f4f7fb;
+  --foreground: #132238;
+  --card: #ffffff;
+  --card-foreground: #132238;
+  --popover: #ffffff;
+  --popover-foreground: #132238;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #edf2ff;
+  --secondary-foreground: #1e293b;
+  --muted: #eef3f8;
+  --muted-foreground: #5f6f86;
+  --accent: #2563eb;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: rgba(15, 23, 42, 0.12);
+  --input: #edf2f7;
+  --input-background: #edf2f7;
+  --switch-background: #dfe9f5;
+  --ring: #2563eb;
+  --chart-1: #2563eb;
+  --chart-2: #22c55e;
+  --chart-3: #3b82f6;
+  --chart-4: #f59e0b;
+  --chart-5: #8b5cf6;
+  --sidebar: #eef4ff;
+  --sidebar-foreground: #132238;
+  --sidebar-primary: #2563eb;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e2e8f0;
+  --sidebar-accent-foreground: #132238;
+  --sidebar-border: rgba(15, 23, 42, 0.12);
+  --sidebar-ring: #2563eb;
+}
+
 .dark {
   --background: #080D16;
   --foreground: #D8E0EA;
