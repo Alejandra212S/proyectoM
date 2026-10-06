@@ -426,7 +426,7 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
         <div className="bg-card border border-border rounded p-5">
           <h3 className="text-sm font-semibold text-foreground mb-4">Paros </h3>
           <br />
-          <h4 className="text-sm font-semibold text-foreground mb-2">Paros preventivos</h4>
+          <h4 className="text-sm font-semibold text-foreground mb-2">Paros programados</h4>
           {downtimeByReason.length > 0 ? <div className="flex justify-center">
             <PieChart width={140} height={140}>
               <Pie data={downtimeByReason} cx={65} cy={65} innerRadius={42} outerRadius={62}
@@ -479,7 +479,7 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
               </div>
             );
           })}
-          {alerts.length === 0 && <p className="px-4 py-5 text-sm text-muted-foreground">La API de máquinas no incluye alertas.</p>}
+          {alerts.length === 0 && <p className="px-4 py-5 text-sm text-muted-foreground">Mo hay alertas pendientes.</p>}
         </div>
       </div>
     </div>
