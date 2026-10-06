@@ -424,7 +424,9 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
 
         {/* Tiempo muerto por causa  */}
         <div className="bg-card border border-border rounded p-5">
-          <h3 className="text-sm font-semibold text-foreground mb-4">Paro por causa </h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4">Paros </h3>
+          <br />
+          <h4 className="text-sm font-semibold text-foreground mb-2">Paros preventivos</h4>
           {downtimeByReason.length > 0 ? <div className="flex justify-center">
             <PieChart width={140} height={140}>
               <Pie data={downtimeByReason} cx={65} cy={65} innerRadius={42} outerRadius={62}
