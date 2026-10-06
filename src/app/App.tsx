@@ -1,3 +1,4 @@
+{/*Importar librerias que se utlizan dentro del sistema*/}
 import { useState, useEffect, useCallback } from "react";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -11,12 +12,14 @@ import {
   Radio, Zap, Gauge, Eye,
 } from "lucide-react";
 
-/* ─────────────── Tipos ─────────────── */
+/* ─────────────── Tipos de estados de las maquinas  ─────────────── */
 type MachineStatus = "running" | "stopped" | "alarm" | "maintenance" | "unknown";
 type View = "dashboard" | "machines" | "machine-detail" | "reports" | "alerts";
 
 interface DI { label: string; state: boolean }
 interface DO_ { label: string; state: boolean }
+
+{/*Mauinas y datos que se esperan recibir con el modulo de ADAM 5060*/}
 
 interface Machine {
   id: string; number: string; name: string; brand: string; model: string; area: string; location: string;
@@ -37,7 +40,8 @@ interface Alert {
   message: string; time: string; acknowledged: boolean;
 }
 
-const normalizeColumn = (column: string) => column.toLowerCase().replace(/[^a-z0-9]/g, "");
+const normalizeColumn = (column: string) => column.toLowerCase().replace(/[^a-z0-9]/g, "");{/*Creación de autmata para la recepció de los datos enviados*/}
+{/*Funciones para leeer los datos*/}
 
 function readColumn(row: Record<string, unknown>, aliases: string[]) {
   const names = new Set(aliases.map(normalizeColumn));
@@ -61,7 +65,7 @@ function readBoolean(value: unknown) {
   if (typeof value === "boolean") return value;
   return ["1", "true", "yes", "si", "on"].includes(String(value).toLowerCase());
 }
-
+{/*Funcion  para definir los estados de una alarma, inactividad */}
 function parseStatus(value: string): MachineStatus {
   const status = normalizeColumn(value);
   if (/alarma|alarm|fault|error/.test(status)) return "alarm";
@@ -227,7 +231,7 @@ function OEERing({ value, size = 72, stroke = 6 }: { value: number; size?: numbe
     </svg>
   );
 }
-
+{/*Estados*/}
 function StatusDot({ status }: { status: MachineStatus }) {
   return (
     <span className="relative flex items-center gap-1.5">
@@ -267,8 +271,7 @@ function MachineCard({ machine, onClick }: { machine: Machine; onClick: () => vo
   return (
     <button
       onClick={onClick}
-      className="bg-card border border-border rounded p-4 text-left hover:border-primary/40 hover:bg-secondary/40 transition-all duration-150 group w-full"
-    >
+      className="bg-card border border-border rounded p-4 text-left hover:border-primary/40 hover:bg-secondary/40 transition-all duration-150 group w-full">
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="flex items-center gap-2 mb-0.5">
@@ -290,12 +293,12 @@ function MachineCard({ machine, onClick }: { machine: Machine; onClick: () => vo
           </span>
         </div>
       </div>
+      {/*PARTE DE LAS MAQUINAS ESTADOS Y RENDIMIENTOS*/}
 
       <div className="grid grid-cols-3 gap-2 mb-3">
         {[
           { l: "DISP", v: machine.availability },
           { l: "REND", v: machine.performance },
-          { l: "CAL", v: machine.quality },
         ].map(({ l, v }) => (
           <div key={l} className="bg-muted/60 rounded p-2">
             <div className="text-[10px] text-muted-foreground mb-1">{l}</div>
@@ -479,7 +482,7 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
               </div>
             );
           })}
-          {alerts.length === 0 && <p className="px-4 py-5 text-sm text-muted-foreground">Mo hay alertas pendientes.</p>}
+          {alerts.length === 0 && <p className="px-4 py-5 text-sm text-muted-foreground">No hay alertas pendientes.</p>}
         </div>
       </div>
     </div>
@@ -707,6 +710,7 @@ function MachinesView({ machines, onSelectMachine, onAddMachine }: {
       </div>
       {filtered.length === 0 && <p className="text-sm text-muted-foreground">No hay máquinas devueltas por la base de datos.</p>}
       {/* Resumen de maquinaria  */}
+
       <div className="bg-card border border-border rounded overflow-hidden">
         <div className="px-5 py-3 border-b border-border">
           <h3 className="text-sm font-semibold text-foreground">Resumen de Maquinaria</h3>
@@ -763,7 +767,7 @@ function MachinesView({ machines, onSelectMachine, onAddMachine }: {
     </div>
   );
 }
-
+ {/*Función de reportes*/}
 function ReportsView({ machines }: { machines: Machine[] }) {
   const averageOee = averageMetrics(machines.map(machine => machine.oee));
   const totalProduced = sumMetrics(machines.map(machine => machine.partsProduced));
@@ -858,9 +862,10 @@ function ReportsView({ machines }: { machines: Machine[] }) {
             ))}
           </div>
         </div>
-
-                  <div className="bg-card border border-border rounded p-5">
-          <h3 className="text-sm font-semibold text-foreground mb-4">Paro por Causa </h3>
+         <div className="bg-card border border-border rounded p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-4"> Paros </h3>
+          
+          <h4 className="text-sm font-semibold text-foreground mb-4"> Paros Programados </h4>
           {downtimeByReason.length > 0 ? <div className="space-y-2">
             {downtimeByReason.map(d => (
               <div key={d.name} className="flex items-center gap-3">
@@ -872,7 +877,7 @@ function ReportsView({ machines }: { machines: Machine[] }) {
                 <span className="font-mono text-xs text-foreground w-12 text-right">{d.value} min</span>
               </div>
             ))}
-          </div> : <p className="text-sm text-muted-foreground">La tabla no contiene registros de paros por causa.</p>}
+          </div> : <p className="text-sm text-muted-foreground">La tabla no contiene registros de paros.</p>}
         </div>
       </div>
     </div>
@@ -961,6 +966,7 @@ function AlertsView({ alerts, onAcknowledge }: { alerts: Alert[]; onAcknowledge:
     </div>
   );
 }
+{/*Función para logo de menshen*/}
 
 function MenshenLogo({ variant }: { variant: "desktop" | "mobile" }) {
   const titleId = `menshen-logo-title-${variant}`;
@@ -1130,7 +1136,7 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
           : maquina.tipo === "Enlainadora"
             ? "enlainadora"
             : "otro";
-
+ 
     const nuevaMaquina: Machine = {
       id: maquina.numero.trim() || `MAQ-${Date.now().toString().slice(-4)}`,
       number: maquina.numero.trim(),
@@ -1213,58 +1219,40 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
       {/* BOTÓN AGREGAR MÁQUINA */}
       <button
         onClick={() => setMostrarFormulario(true)}
-        className="px-3 py-1.5 text-xs rounded bg-indigo-500 text-white hover:bg-purple-500"
+        className="rounded bg-orange-500 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-orange-600"
       >
         Agregar Máquina
       </button>
 
       {/* MODAL */}
       {mostrarFormulario && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-grid /50 p-4">
-
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-900 rounded-xl shadow-xl">
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 shadow-2xl">
             {/* ENCABEZADO */}
-            <div className="flex items-center justify-between px-6 py-4 border-b">
-
+            <div className="flex items-center justify-between border-b border-slate-700 px-6 py-4">
               <div>
-                <h2 className="text-xl font-bold text-while-100">
-                  Agregar Máquina
-                </h2>
-                   <br />
-                <p className="text-sm text-whiel-500">
-                  Registra la información de la maquinaria
-                </p>
+                <h2 className="text-xl font-bold text-white">Agregar Máquina</h2>
+                <p className="mt-1 text-sm text-slate-300">Registra la información de la maquinaria</p>
               </div>
 
               <button
                 type="button"
                 onClick={() => setMostrarFormulario(false)}
-                className="text-gray-400 hover:text-red-500 text-xl"
+                className="text-xl text-slate-400 transition hover:text-red-400"
               >
                 ✕
               </button>
-
             </div>
 
             {/* FORMULARIO */}
-            <form onSubmit={guardarMaquina} className="p-4 space-y-6 sm:p-6">
-
+            <form onSubmit={guardarMaquina} className="space-y-6 p-4 sm:p-6">
               {/* INFORMACIÓN GENERAL */}
               <section>
+                <h3 className="mb-4 text-sm font-semibold text-slate-200">Información general</h3>
 
-                <h3 className="mb-4 text-sm font-semibold text-gray-300">
-                  Información general
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                  {/* NOMBRE */}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className="text-sm text-gray-300">
-                      Nombre de la máquina
-                    </label>
-
+                    <label className="text-sm text-slate-200">Nombre de la máquina</label>
                     <input
                       type="text"
                       name="nombre"
@@ -1272,38 +1260,30 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
                       onChange={handleChange}
                       placeholder="Ej. Máquina de Inyección 01"
                       required
-                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm bg-slate-900"
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none"
                     />
                   </div>
 
-                  {/* ID */}
                   <div>
-                    <label className="text-sm text-gray-300">
-                      Número / ID
-                    </label>
-
+                    <label className="text-sm text-slate-200">Número / ID</label>
                     <input
                       type="text"
                       name="numero"
                       value={maquina.numero}
                       onChange={handleChange}
                       placeholder="Ej. MAQ-001"
-                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none"
                     />
                   </div>
 
-                  {/* TIPO */}
                   <div>
-                    <label className="text-sm text-black-300">
-                      Tipo de máquina
-                    </label>
-
+                    <label className="text-sm text-slate-200">Tipo de máquina</label>
                     <select
                       name="tipo"
                       value={maquina.tipo}
                       onChange={handleChange}
                       required
-                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm bg-slate-900"
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-orange-500 focus:outline-none"
                     >
                       <option value="">Seleccionar...</option>
                       <option value="Inyección">Inyección</option>
@@ -1317,13 +1297,9 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
                     </select>
                   </div>
 
-                  {/* OTROS */}
                   {maquina.tipo === "Otros" && (
                     <div>
-                      <label className="text-sm text-gray-600">
-                        Especificar tipo
-                      </label>
-
+                      <label className="text-sm text-slate-200">Especificar tipo</label>
                       <input
                         type="text"
                         name="otroTipo"
@@ -1331,65 +1307,49 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
                         onChange={handleChange}
                         placeholder="¿Qué tipo de máquina es?"
                         required
-                        className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                        className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none"
                       />
                     </div>
                   )}
 
-                  {/* MARCA */}
                   <div>
-                    <label className="text-sm text-while-300">
-                      Marca
-                    </label>
-
+                    <label className="text-sm text-slate-200">Marca</label>
                     <input
                       type="text"
                       name="marca"
                       value={maquina.marca}
                       onChange={handleChange}
                       placeholder="Ej. Engel"
-                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none"
                     />
                   </div>
 
-                  {/* MODELO */}
                   <div>
-                    <label className="text-sm text-while-300">
-                      Modelo
-                    </label>
-
+                    <label className="text-sm text-slate-200">Modelo</label>
                     <input
                       type="text"
                       name="modelo"
                       value={maquina.modelo}
                       onChange={handleChange}
                       placeholder="Modelo"
-                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none"
                     />
                   </div>
-
                 </div>
               </section>
 
               {/* UBICACIÓN */}
               <section>
+                <h3 className="mb-4 text-sm font-semibold text-slate-200">Ubicación y estado</h3>
 
-                <h3 className="mb-4 text-sm font-semibold text-gray-300">
-                  Ubicación y estado
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div>
-                    <label className="text-sm text-while-300">
-                      Área
-                    </label>
-
+                    <label className="text-sm text-slate-200">Área</label>
                     <select
                       name="area"
                       value={maquina.area}
                       onChange={handleChange}
-                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm bg-slate-900"
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-orange-500 focus:outline-none"
                     >
                       <option value="">Seleccionar...</option>
                       <option value="Producción">Producción</option>
@@ -1403,103 +1363,73 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
                   </div>
 
                   <div>
-                    <label className="text-sm text-while-300">
-                      Ubicación
-                    </label>
-
+                    <label className="text-sm text-slate-200">Ubicación</label>
                     <input
                       type="text"
                       name="ubicacion"
                       value={maquina.ubicacion}
                       onChange={handleChange}
                       placeholder="Ej. Línea 2"
-                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="text-sm text-while-300">
-                      Estado
-                    </label>
-
+                    <label className="text-sm text-slate-200">Estado</label>
                     <select
                       name="estado"
                       value={maquina.estado}
                       onChange={handleChange}
-                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm bg-slate-900"
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-orange-500 focus:outline-none"
                     >
                       <option value="Operativa">Operativa</option>
                       <option value="Detenida">Detenida</option>
-                      <option value="Mantenimiento"> En mantenimiento
-                      </option> <option value="Fuera de servicio">
-                       Fuera de servicio
-                      </option>
+                      <option value="Mantenimiento">En mantenimiento</option>
+                      <option value="Fuera de servicio">Fuera de servicio</option>
                     </select>
                   </div>
-
                 </div>
               </section>
 
               {/* CONECTIVIDAD */}
-              <section>
+              <section className="space-y-4">
+                <div>
+                  <label className="text-sm text-slate-200">Comunicación</label>
+                </div>
 
-                  <div>
-                    <label className="text-sm text-while 300">
-                      Comunicación
-                      <br />
-                    </label>
-                    <br />
-                  <div>
-                    <label className="text-sm text-While-300">
-                      
-                      Dirección IP
-                    </label>
-                    <br />
-
-                    <input
-
-                      type="text"
-                      name="ip"
-                      value={maquina.ip}
-                      onChange={handleChange}
-                      placeholder="Ejemplo 192.X.X.X"
-                      className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    
-
-                  </div>
-
+                <div>
+                  <label className="text-sm text-slate-200">Dirección IP</label>
+                  <input
+                    type="text"
+                    name="ip"
+                    value={maquina.ip}
+                    onChange={handleChange}
+                    placeholder="Ejemplo 192.X.X.X"
+                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none"
+                  />
                 </div>
               </section>
 
               {/* DESCRIPCIÓN */}
               <section>
-                <label className="text-sm text-While-300">
-                  Descripción
-                </label>
-                <br />
-
+                <label className="text-sm text-slate-200">Descripción</label>
                 <textarea
                   name="descripcion"
                   value={maquina.descripcion}
                   onChange={handleChange}
                   rows={3}
                   placeholder="Descripción de la máquina..."
-                  className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none"
                 />
               </section>
 
               {/* BOTONES */}
               {errorGuardar && <p role="alert" className="text-sm text-red-400">{errorGuardar}</p>}
-              <div className="flex justify-end gap-3 pt-4 border-t">
-
+              <div className="flex justify-end gap-3 border-t border-slate-700 pt-4">
                 <button
                   type="button"
                   onClick={() => setMostrarFormulario(false)}
-                  className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100"
+                  className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 transition hover:bg-slate-800"
                 >
                   Cancelar
                 </button>
@@ -1507,13 +1437,11 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
                 <button
                   type="submit"
                   disabled={guardando}
-                  className="px-4 py-2 text-sm rounded-lg bg-yellow-600 text-white hover:bg-pink-700"
+                  className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {guardando ? "Guardando..." : "Guardar Máquina"}
                 </button>
-
               </div>
-
             </form>
           </div>
         </div>
@@ -1522,7 +1450,7 @@ function AgregarMaquina({ onAddMachine }: { onAddMachine: (m: Machine) => Promis
   );
 }
 
-/* ─────────────── App ─────────────── */
+/* ─────────────── App y función localmente ─────────────── */
 export default function App() {
   const [view, setView] = useState<View>("dashboard");
   const [machines, setMachines] = useState<Machine[]>([]);
