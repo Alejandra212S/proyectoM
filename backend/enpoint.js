@@ -1,3 +1,4 @@
+const ModbusRTU = require("modbus-serial");
 const express = require("express");
 const cors = require("cors");
 const { sql, config } = require("./bd");
@@ -157,7 +158,67 @@ app.post("/maquinas", async (req, res) => {
 });
 
 const port = Number(process.env.API_PORT || 3001);
+app.get("/adam/:id/estado", async (req, res) => {
+  const client = new ModbusRTU();
 
+  try {
+    const pool = await sql.connect(config);
+
+    const dispositivo = await pool
+      .request()
+      .input("id", sql.Int, req.params.id)
+      .query(`
+        SELECT
+          d.DispositivoId,
+          d.DireccionIP,
+          d.PuertoTCP,
+          ISNULL(d.UnitId,1) AS UnitId
+        FROM DispositivosADAM5060 d
+        WHERE d.DispositivoId = @id
+      `);
+
+    if (!dispositivo.recordset.length) {
+      return res.status(404).json({
+        error: "Dispositivo no encontrado"
+      });
+    }
+
+    const adam = dispositivo.recordset[0];
+
+    await client.connectTCP(adam.DireccionIP, {
+      port: adam.PuertoTCP || 502
+    });
+
+    client.setID(adam.UnitId);
+
+    const entradas = await client.readDiscreteInputs(0, 16);
+    const salidas = await client.readCoils(0, 8);
+
+    client.close();
+
+    res.json({
+      entradas: entradas.data,
+      salidas: salidas.data
+    });
+
+  } catch (error) {
+
+    try {
+      client.close();
+    } catch {}
+
+    res.status(500).json({
+      error: error.message
+    });
+  }
+});
+const obtenerEstado = async (id) => {
+  const response = await fetch(
+    `http://localhost:3001/adam/${id}/estado`
+  );
+
+  return response.json();
+};
 app.listen(port, () => {
   console.log(`Servidor ejecutándose en puerto ${port}`);
 });

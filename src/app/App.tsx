@@ -40,6 +40,11 @@ interface Alert {
   message: string; time: string; acknowledged: boolean;
 }
 
+interface AdamInput {
+  canal: string;
+  activa: boolean;
+}
+
 const normalizeColumn = (column: string) => column.toLowerCase().replace(/[^a-z0-9]/g, "");{/*Creación de autmata para la recepció de los datos enviados*/}
 {/*Funciones para leeer los datos*/}
 
@@ -265,6 +270,112 @@ function KpiCard({ label, value, unit, sub, trend }: {
   );
 }
 
+function Adam6050Panel() {
+  const [inputs, setInputs] = useState<(AdamInput | null)[]>([]);
+  const [connected, setConnected] = useState(false);
+  const [connectionError, setConnectionError] = useState("Conectando con el servidor ADAM...");
+
+  useEffect(() => {
+    let active = true;
+    let timeout: number;
+
+    const loadInputs = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/entradas");
+        const body: unknown = await response.json();
+        if (!response.ok) {
+          const message = body && typeof body === "object" && "error" in body && typeof body.error === "string"
+            ? body.error
+            : `Error HTTP ${response.status}`;
+          throw new Error(message);
+        }
+        if (
+          !body || typeof body !== "object" ||
+          !("conectado" in body) || typeof body.conectado !== "boolean" ||
+          !("entradas" in body) || !Array.isArray(body.entradas)
+        ) {
+          throw new Error("La API ADAM devolvió una respuesta inválida.");
+        }
+
+        const nextInputs = body.entradas.map((entry, index): AdamInput | null => {
+          if (entry === null) return null;
+          if (!entry || typeof entry !== "object" || !("activa" in entry) || typeof entry.activa !== "boolean") {
+            throw new Error(`La respuesta contiene un estado inválido para DI${index}.`);
+          }
+          return {
+            canal: "canal" in entry && typeof entry.canal === "string" ? entry.canal : `DI${index}`,
+            activa: entry.activa,
+          };
+        });
+
+        if (active) {
+          setInputs(nextInputs);
+          setConnected(body.conectado);
+          setConnectionError(
+            body.conectado
+              ? ""
+              : "error" in body && typeof body.error === "string"
+                ? body.error
+                : "Sin comunicación con el ADAM-6050."
+          );
+        }
+      } catch (error) {
+        if (active) {
+          setInputs([]);
+          setConnected(false);
+          setConnectionError(error instanceof Error ? error.message : "No se pudo consultar el servidor ADAM.");
+        }
+      } finally {
+        if (active) timeout = window.setTimeout(loadInputs, 1000);
+      }
+    };
+
+    void loadInputs();
+    return () => {
+      active = false;
+      window.clearTimeout(timeout);
+    };
+  }, []);
+
+  return (
+    <section className="bg-card border border-border rounded p-5">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">Entradas digitales ADAM-6050</h2>
+        <span className={`flex items-center gap-2 text-xs font-mono ${connected ? "text-green-400" : "text-red-400"}`}>
+          <span className={`h-2 w-2 rounded-full ${connected ? "bg-green-400" : "bg-red-400"}`} />
+          {connected ? "Conectado" : connectionError}
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+        {Array.from({ length: 12 }, (_, index) => {
+          const input = inputs[index];
+          return (
+            <div key={input?.canal ?? `DI${index}`} className="flex items-center gap-3 rounded bg-muted/40 px-3 py-2">
+              <span className="w-8 font-mono text-[10px] text-muted-foreground">{input?.canal ?? `DI${index}`}</span>
+              <span className={`h-2.5 w-2.5 rounded-full ${
+                input === null || input === undefined
+                  ? "bg-muted-foreground/40"
+                  : input.activa
+                    ? "bg-green-400"
+                    : "bg-red-500"
+              }`} />
+              <span className={`font-mono text-[10px] ${
+                input === null || input === undefined
+                  ? "text-muted-foreground"
+                  : input.activa
+                    ? "text-green-400"
+                    : "text-red-400"
+              }`}>
+                {input === null || input === undefined ? "SIN DATOS" : input.activa ? "ACTIVA" : "INACTIVA"}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function MachineCard({ machine, onClick }: { machine: Machine; onClick: () => void }) {
   const oee = machine.oee ?? 0;
   const oeeColor = oee >= 85 ? "#22C55E" : oee >= 65 ? "#F59E0B" : oee > 0 ? "#EF4444" : "#6B7A8D";
@@ -374,6 +485,8 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
           </div>
         </div>
       </div>
+
+      <Adam6050Panel />
 
       {/* Rendimiento total */}
 
@@ -491,7 +604,33 @@ function DashboardView({ machines, alerts, onSelectMachine }: {
 
 function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () => void }) {
   const [tab, setTab] = useState<"io" | "downtime" | "history">("io");
+  const [ioData, setIoData] = useState<{
+  entradas: boolean[];
+  salidas: boolean[];
+} | null>(null);
+useEffect(() => {
+  const cargarEstado = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:3001/adam/${machine.id}/estado`
+      );
 
+      const data = await response.json();
+
+      setIoData(data);
+
+    } catch (error) {
+      console.error("Error leyendo ADAM:", error);
+    }
+  };
+
+  cargarEstado();
+
+  const intervalo = setInterval(cargarEstado, 2000);
+
+  return () => clearInterval(intervalo);
+
+}, [machine.id]);
   const oee = machine.oee ?? 0;
   const oeeColor = oee >= 85 ? "#22C55E" : oee >= 65 ? "#F59E0B" : oee > 0 ? "#EF4444" : "#6B7A8D";
 
@@ -589,16 +728,30 @@ function MachineDetailView({ machine, onBack }: { machine: Machine; onBack: () =
                 Entradas Digitales — DI0–DI11
               </h4>
               <div className="space-y-1.5">
-                {machine.di.map((d, i) => (
-                  <div key={i} className="flex items-center gap-3 py-1.5 px-3 bg-muted/40 rounded">
-                    <span className="font-mono text-[10px] text-muted-foreground w-8">DI{i}</span>
-                    <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${d.state ? "bg-green-400" : "bg-red-500/60"}`} />
-                    <span className="text-xs text-foreground flex-1">{d.label}</span>
-                    <span className={`font-mono text-[10px] ${d.state ? "text-green-400" : "text-muted-foreground"}`}>
-                      {d.state ? "ON" : "OFF"}
-                    </span>
-                  </div>
-                ))}
+             {ioData?.entradas?.map((estado, i) => (
+  <div
+    key={i}
+    className="flex items-center gap-3 py-1.5 px-3 bg-muted/40 rounded"
+  >
+    <span className="font-mono text-[10px] text-muted-foreground w-8">
+      DI{i}
+    </span>
+
+    <div
+      className={`w-3 h-3 rounded-full ${
+        estado ? "bg-green-400" : "bg-red-500"
+      }`}
+    />
+
+    <span
+      className={`font-mono text-[10px] ${
+        estado ? "text-green-400" : "text-red-400"
+      }`}
+    >
+      {estado ? "ON" : "OFF"}
+    </span>
+  </div>
+))}
               </div>
             </div>
             <div>
